@@ -106,3 +106,7 @@ ENV/
 *.eps
 optimization-result*
 
+
+pre-trained/
+
+tags
