@@ -16,7 +16,9 @@ class Population:
         self.w = w
 
     def get_description(self):
-        return '{} (#neurons={}; in-degree={}; RF-width={})'.format(self.name, self.n, self.e, self.w)
+        return "{} (#neurons={}; in-degree={}; RF-width={})".format(
+            self.name, self.n, self.e, self.w
+        )
 
     def is_input(self):
         """
@@ -26,7 +28,7 @@ class Population:
         return not self.e
 
 
-#TODO: do I really need subclasses or can I have f and b, possibly None, f ignored if b not None?
+# TODO: do I really need subclasses or can I have f and b, possibly None, f ignored if b not None?
 class Projection:
     def __init__(self, origin, termination):
         """
@@ -37,7 +39,7 @@ class Projection:
         self.termination = termination
 
     def get_description(self):
-        return '{}->{}'.format(self.origin.name, self.termination.name)
+        return "{}->{}".format(self.origin.name, self.termination.name)
 
 
 class InterAreaProjection(Projection):
@@ -52,7 +54,7 @@ class InterAreaProjection(Projection):
         self.f = f
 
     def get_description(self):
-        return '{} (FLNe={})'.format(super().get_description(), self.f)
+        return "{} (FLNe={})".format(super().get_description(), self.f)
 
 
 class InterLaminarProjection(Projection):
@@ -68,13 +70,15 @@ class InterLaminarProjection(Projection):
         self.b = b
 
     def get_description(self):
-        return '{} (synapses-per-target={})'.format(Projection.get_description(self), self.b)
+        return "{} (synapses-per-target={})".format(
+            Projection.get_description(self), self.b
+        )
 
 
 class System:
     def __init__(self, min_f=1e-6):
         self.min_f = min_f
-        self.input_name = 'INPUT'
+        self.input_name = "INPUT"
         self.populations = []
         self.projections = []
 
@@ -91,7 +95,7 @@ class System:
 
     def add(self, name, n, e, w):
         if self.find_population(name) is not None:
-            raise Exception(name + ' already exists in network')
+            raise Exception(name + " already exists in network")
 
         self.populations.append(Population(name, n, e, w))
 
@@ -100,23 +104,27 @@ class System:
         termination = self.find_population(termination_name)
 
         if origin is None:
-            raise Exception(origin_name + ' is not in the system')
+            raise Exception(origin_name + " is not in the system")
         if termination is None:
-            raise Exception(termination_name + ' is not in the system')
+            raise Exception(termination_name + " is not in the system")
 
         if f >= self.min_f:
             self.projections.append(InterAreaProjection(origin, termination, f))
         else:
-            print('Omitting connection {}->{} with f={}'.format(origin_name, termination_name, f))
+            print(
+                "Omitting connection {}->{} with f={}".format(
+                    origin_name, termination_name, f
+                )
+            )
 
     def connect_layers(self, origin_name, termination_name, b):
         origin = self.find_population(origin_name)
         termination = self.find_population(termination_name)
 
         if origin is None:
-            raise Exception(origin_name + ' is not in the system')
+            raise Exception(origin_name + " is not in the system")
         if termination is None:
-            raise Exception(termination_name + ' is not in the system')
+            raise Exception(termination_name + " is not in the system")
 
         self.projections.append(InterLaminarProjection(origin, termination, b))
 
@@ -143,7 +151,10 @@ class System:
         assert isinstance(termination_name, str)
         result = None
         for projection in self.projections:
-            if projection.origin.name == origin_name and projection.termination.name == termination_name:
+            if (
+                projection.origin.name == origin_name
+                and projection.termination.name == termination_name
+            ):
                 result = projection
                 break
         return result
@@ -153,7 +164,10 @@ class System:
         result = None
         for i in range(len(self.projections)):
             projection = self.projections[i]
-            if projection.origin.name == origin_name and projection.termination.name == termination_name:
+            if (
+                projection.origin.name == origin_name
+                and projection.termination.name == termination_name
+            ):
                 result = i
                 break
         return result
@@ -201,9 +215,17 @@ class System:
         """
 
         def keep(projection):
-            if isinstance(projection, InterAreaProjection) and projection.f < min_fraction:
-                print('Pruning sparse projection {}->{} {}'.format(
-                    projection.origin.name, projection.termination.name, projection.f))
+            if (
+                isinstance(projection, InterAreaProjection)
+                and projection.f < min_fraction
+            ):
+                print(
+                    "Pruning sparse projection {}->{} {}".format(
+                        projection.origin.name,
+                        projection.termination.name,
+                        projection.f,
+                    )
+                )
                 return False
             else:
                 return True
@@ -236,7 +258,7 @@ class System:
             pop = self.populations[i]
             # print('{}: {}'.format(pop.name, [pre.name for pre in self.find_pre(pop.name)]))
             if i not in input_indices:
-                assert self.find_pre(pop.name), '{} has no inputs'.format(pop.name)
+                assert self.find_pre(pop.name), "{} has no inputs".format(pop.name)
 
     def merge_populations(self, to_keep, to_merge):
         """
@@ -256,9 +278,13 @@ class System:
 
         for projection in self.projections:
             if projection.termination.name == to_merge:
-                if projection.origin.name == to_keep: # don't need projection between merged populations
+                if (
+                    projection.origin.name == to_keep
+                ):  # don't need projection between merged populations
                     projections_to_drop.append(projection)
-                elif self.find_projection(projection.origin.name, keep_pop.name): # new projection already exists
+                elif self.find_projection(
+                    projection.origin.name, keep_pop.name
+                ):  # new projection already exists
                     projections_to_drop.append(projection)
                 else:
                     projection.termination = keep_pop
@@ -279,46 +305,48 @@ class System:
 
 def get_example_system():
     result = System()
-    result.add_input(250000, .02)
-    result.add('V1', 10000000, 2000, .1)
-    result.add('V2', 10000000, 2000, .2)
-    result.add('V4', 5000000, 2000, .4)
-    result.connect_areas('INPUT', 'V1', 1.)
-    result.connect_areas('V1', 'V2', 1.)
-    result.connect_areas('V1', 'V4', .5)
-    result.connect_areas('V2', 'V4', .5)
+    result.add_input(250000, 0.02)
+    result.add("V1", 10000000, 2000, 0.1)
+    result.add("V2", 10000000, 2000, 0.2)
+    result.add("V4", 5000000, 2000, 0.4)
+    result.connect_areas("INPUT", "V1", 1.0)
+    result.connect_areas("V1", "V2", 1.0)
+    result.connect_areas("V1", "V4", 0.5)
+    result.connect_areas("V2", "V4", 0.5)
     return result
+
 
 def get_example_small():
     result = System()
-    result.add_input(750000, .02)
-    result.add('V1_4', 53000000, 500, .09)
-    result.add('V1_23', 53000000, 1000, .1)
-    result.add('V1_5', 27000000, 3000, .11)
-    result.add('V2_4', 33000000, 500, .19)
-    result.add('V2_23', 33000000, 1000, .2)
-    result.add('V2_5', 17000000, 3000, .21)
-    result.add('V4_4', 17000000, 500, .39)
-    result.add('V4_23', 17000000, 1000, .4)
-    result.add('V4_5', 8000000, 3000, .41)
+    result.add_input(750000, 0.02)
+    result.add("V1_4", 53000000, 500, 0.09)
+    result.add("V1_23", 53000000, 1000, 0.1)
+    result.add("V1_5", 27000000, 3000, 0.11)
+    result.add("V2_4", 33000000, 500, 0.19)
+    result.add("V2_23", 33000000, 1000, 0.2)
+    result.add("V2_5", 17000000, 3000, 0.21)
+    result.add("V4_4", 17000000, 500, 0.39)
+    result.add("V4_23", 17000000, 1000, 0.4)
+    result.add("V4_5", 8000000, 3000, 0.41)
 
-    result.connect_areas('INPUT', 'V1_4', 1.)
+    result.connect_areas("INPUT", "V1_4", 1.0)
 
-    result.connect_layers('V1_4', 'V1_23', 800.)
-    result.connect_layers('V1_23', 'V1_5', 3000.)
+    result.connect_layers("V1_4", "V1_23", 800.0)
+    result.connect_layers("V1_23", "V1_5", 3000.0)
 
-    result.connect_areas('V1_5', 'V2_4', 1.)
+    result.connect_areas("V1_5", "V2_4", 1.0)
 
-    result.connect_layers('V2_4', 'V2_23', 800.)
-    result.connect_layers('V2_23', 'V2_5', 3000.)
+    result.connect_layers("V2_4", "V2_23", 800.0)
+    result.connect_layers("V2_23", "V2_5", 3000.0)
 
-    result.connect_areas('V1_5', 'V4_4', .15)
-    result.connect_areas('V2_5', 'V4_4', .85)
+    result.connect_areas("V1_5", "V4_4", 0.15)
+    result.connect_areas("V2_5", "V4_4", 0.85)
 
-    result.connect_layers('V4_4', 'V4_23', 800.)
-    result.connect_layers('V4_23', 'V4_5', 3000.)
+    result.connect_layers("V4_4", "V4_23", 800.0)
+    result.connect_layers("V4_23", "V4_5", 3000.0)
 
     return result
+
 
 def get_example_medium():
     # This example was written before the code distinguished interarea and interlaminar
@@ -326,84 +354,84 @@ def get_example_medium():
     # preserve it as-is.
 
     result = System()
-    result.add_input(750000, .02)
-    result.add('LGNparvo', 2000000, 1000, .04)
-    result.add('V1_4', 53000000, 500, .1)
-    result.add('V1_23', 53000000, 1000, .13)
-    result.add('V2_4', 33000000, 500, .2)
-    result.add('V2_23', 33000000, 1000, .26)
-    result.add('V4_4', 17000000, 500, .4)
-    result.add('V4_23', 17000000, 1000, .5)
-    result.add('MT_4', 4800000, 500, 1.)
-    result.add('MT_23', 4800000, 1000, 1.1)
-    result.add('VOT_4', 6000000, 500, 1.4)
-    result.add('VOT_23', 6000000, 1000, 1.5)
-    result.add('PITd_4', 5700000, 500, 3.)
-    result.add('PITd_23', 5700000, 1000, 4.)
-    result.add('DP_4', 17000000, 500, 1.7)
-    result.add('DP_23', 17000000, 1000, 1.8)
+    result.add_input(750000, 0.02)
+    result.add("LGNparvo", 2000000, 1000, 0.04)
+    result.add("V1_4", 53000000, 500, 0.1)
+    result.add("V1_23", 53000000, 1000, 0.13)
+    result.add("V2_4", 33000000, 500, 0.2)
+    result.add("V2_23", 33000000, 1000, 0.26)
+    result.add("V4_4", 17000000, 500, 0.4)
+    result.add("V4_23", 17000000, 1000, 0.5)
+    result.add("MT_4", 4800000, 500, 1.0)
+    result.add("MT_23", 4800000, 1000, 1.1)
+    result.add("VOT_4", 6000000, 500, 1.4)
+    result.add("VOT_23", 6000000, 1000, 1.5)
+    result.add("PITd_4", 5700000, 500, 3.0)
+    result.add("PITd_23", 5700000, 1000, 4.0)
+    result.add("DP_4", 17000000, 500, 1.7)
+    result.add("DP_23", 17000000, 1000, 1.8)
 
     # input
-    result.connect_areas('INPUT', 'LGNparvo', 1.)
-    result.connect_areas('LGNparvo', 'V1_4', 1.)
+    result.connect_areas("INPUT", "LGNparvo", 1.0)
+    result.connect_areas("LGNparvo", "V1_4", 1.0)
 
     # laminar connections
-    result.connect_areas('V1_4', 'V1_23', 1.)
-    result.connect_areas('V2_4', 'V2_23', 1.)
-    result.connect_areas('V4_4', 'V4_23', 1.)
-    result.connect_areas('MT_4', 'MT_23', 1.)
-    result.connect_areas('VOT_4', 'VOT_23', 1.)
-    result.connect_areas('PITd_4', 'PITd_23', 1.)
-    result.connect_areas('DP_4', 'DP_23', 1.)
+    result.connect_areas("V1_4", "V1_23", 1.0)
+    result.connect_areas("V2_4", "V2_23", 1.0)
+    result.connect_areas("V4_4", "V4_23", 1.0)
+    result.connect_areas("MT_4", "MT_23", 1.0)
+    result.connect_areas("VOT_4", "VOT_23", 1.0)
+    result.connect_areas("PITd_4", "PITd_23", 1.0)
+    result.connect_areas("DP_4", "DP_23", 1.0)
 
     # feedforward inter-areal connections
-    result.connect_areas('V1_23', 'V2_4', 1.)
-    result.connect_areas('V1_23', 'V4_4', 0.0307)
-    result.connect_areas('V1_23', 'MT_4', 0.0235)
-    result.connect_areas('V2_23', 'V4_4', 0.9693)
-    result.connect_areas('V2_23', 'MT_4', 0.2346)
-    result.connect_areas('V2_23', 'PITd_4', 0.0026)
-    result.connect_areas('V2_23', 'DP_4', 0.2400)
-    result.connect_areas('V4_23', 'MT_4', 0.7419)
-    result.connect_areas('V4_23', 'PITd_4', 0.2393)
-    result.connect_areas('V4_23', 'DP_4', 0.7591)
-    result.connect_areas('VOT_23', 'PITd_4', 0.7569)
-    result.connect_areas('VOT_23', 'DP_4', 0.0008)
-    result.connect_areas('MT_23', 'PITd_4', 0.0004)
-    result.connect_areas('DP_23', 'PITd_4', 0.0009)
-    result.connect_areas('V2_23', 'VOT_4', 0.0909)
-    result.connect_areas('V4_23', 'VOT_4', 0.9091)
+    result.connect_areas("V1_23", "V2_4", 1.0)
+    result.connect_areas("V1_23", "V4_4", 0.0307)
+    result.connect_areas("V1_23", "MT_4", 0.0235)
+    result.connect_areas("V2_23", "V4_4", 0.9693)
+    result.connect_areas("V2_23", "MT_4", 0.2346)
+    result.connect_areas("V2_23", "PITd_4", 0.0026)
+    result.connect_areas("V2_23", "DP_4", 0.2400)
+    result.connect_areas("V4_23", "MT_4", 0.7419)
+    result.connect_areas("V4_23", "PITd_4", 0.2393)
+    result.connect_areas("V4_23", "DP_4", 0.7591)
+    result.connect_areas("VOT_23", "PITd_4", 0.7569)
+    result.connect_areas("VOT_23", "DP_4", 0.0008)
+    result.connect_areas("MT_23", "PITd_4", 0.0004)
+    result.connect_areas("DP_23", "PITd_4", 0.0009)
+    result.connect_areas("V2_23", "VOT_4", 0.0909)
+    result.connect_areas("V4_23", "VOT_4", 0.9091)
 
     return result
 
 
 def get_layout(sys):
     areas = {}
-    areas['INPUT'] = [.075, .5]
-    areas['LGN'] = [.17, .5]
-    areas['V1'] = [.15, .5]
-    areas['V2'] = [.225, .6]
-    areas['V3'] = [.3, .7]
-    areas['V3A'] = [.35, .7]
-    areas['V4'] = [.35, .4]
-    areas['TEO'] = [.5, .23]
-    areas['MT'] = [.425, .55]
-    areas['MST'] = [.5, .55]
-    areas['VIP'] = [.7, .7]
-    areas['LIP'] = [.65, .65]
-    areas['TEpd'] = [.6, .25]
-    areas['DP'] = [.4, .5]
+    areas["INPUT"] = [0.075, 0.5]
+    areas["LGNparvo"] = [0.17, 0.5]
+    areas["V1"] = [0.15, 0.5]
+    areas["V2"] = [0.225, 0.6]
+    areas["V3"] = [0.3, 0.7]
+    areas["V3A"] = [0.35, 0.7]
+    areas["V4"] = [0.35, 0.4]
+    areas["VOT"] = [0.5, 0.23]
+    areas["MT"] = [0.425, 0.55]
+    areas["MST"] = [0.5, 0.55]
+    areas["VIP"] = [0.7, 0.7]
+    areas["LIP"] = [0.65, 0.65]
+    areas["PITd"] = [0.6, 0.25]
+    areas["DP"] = [0.4, 0.5]
 
     offsets = {}
-    offsets['4'] = 0
-    offsets['4Cbeta'] = 0
-    offsets['23'] = .09
-    offsets['2/3'] = .09
-    offsets['5'] = -.09
+    offsets["4"] = 0
+    offsets["4Cbeta"] = 0
+    offsets["23"] = 0.09
+    offsets["2/3"] = 0.09
+    offsets["5"] = -0.09
 
     result = {}
     for pop in sys.populations:
-        name = pop.name.split('_')
+        name = pop.name.split("_")
         position = areas[name[0]].copy()
         if len(name) > 1:
             # print(offsets[name[1]])
@@ -414,7 +442,7 @@ def get_layout(sys):
     return result
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys = get_example_medium()
 
     foo = get_layout(sys)
@@ -422,8 +450,15 @@ if __name__ == '__main__':
 
     graph = sys.make_graph()
     # print(type(nx.drawing.layout.random_layout(graph)))
-    #TODO: these layouts all look awful; should use flat-map cortical positions
-    nx.draw_networkx(graph, pos=get_layout(sys), arrows=True, font_size=10, node_size=1200, node_color='white')
+    # TODO: these layouts all look awful; should use flat-map cortical positions
+    nx.draw_networkx(
+        graph,
+        pos=get_layout(sys),
+        arrows=True,
+        font_size=10,
+        node_size=1200,
+        node_color="white",
+    )
     # nx.draw_networkx(graph, pos=nx.spring_layout(graph), arrows=True, font_size=10, node_size=1200, node_color='white')
     # nx.draw_networkx(graph, pos=nx.drawing.layout.fruchterman_reingold_layout(graph), arrows=True, font_size=10, node_size=1200, node_color='white')
     plt.show()

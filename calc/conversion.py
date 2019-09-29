@@ -1,9 +1,9 @@
-from calc.system import InterLaminarProjection, InterAreaProjection
-from calc.network import Network
+from system import InterLaminarProjection, InterAreaProjection
+from network import Network
 import tensorflow as tf
 import numpy as np
 
-#TODO: refactor finer-grained cost objects that encapsulate individual terms, associated NetworkVariables & SystemConstants
+# TODO: refactor finer-grained cost objects that encapsulate individual terms, associated NetworkVariables & SystemConstants
 
 
 class SystemConstants:
@@ -23,17 +23,27 @@ class SystemConstants:
         self.b = []
 
         for population in system.populations:
-            self.n.append(tf.constant(float(population.n), name='n_in_{}'.format(population.name)))
+            self.n.append(
+                tf.constant(float(population.n), name="n_in_{}".format(population.name))
+            )
 
             if population.w:
-                self.w.append(tf.constant(float(population.w), name='w_of_{}'.format(population.name)))
+                self.w.append(
+                    tf.constant(
+                        float(population.w), name="w_of_{}".format(population.name)
+                    )
+                )
             else:
                 self.w.append(None)
 
             if population.name == system.input_name or population.e is None:
                 self.e.append(None)
             else:
-                self.e.append(tf.constant(float(population.e), name='e_of_{}'.format(population.name)))
+                self.e.append(
+                    tf.constant(
+                        float(population.e), name="e_of_{}".format(population.name)
+                    )
+                )
 
         for projection in system.projections:
             if isinstance(projection, InterAreaProjection):
@@ -46,7 +56,9 @@ class SystemConstants:
 
 
 def get_variable(name, initial_value):
-    return tf.get_variable(name, initializer=tf.constant(float(initial_value)))
+    return tf.compat.v1.get_variable(
+        name, initializer=tf.constant(float(initial_value))
+    )
 
 
 class NetworkVariables:
@@ -67,28 +79,38 @@ class NetworkVariables:
         self.n_connections = len(network.connections)
 
         # hyperparameters wrapped as TF variables
-        self.c = [] # fraction of feature maps in pre layer that contribute to each connection
-        self.sigma = [] # pixel-wise sparsity of each connection
+        self.c = (
+            []
+        )  # fraction of feature maps in pre layer that contribute to each connection
+        self.sigma = []  # pixel-wise sparsity of each connection
 
         # an additional variable from which some connection hyperparams are derived
-        self.w_rf = [] # RF width of each layer in degrees visual angle
+        self.w_rf = []  # RF width of each layer in degrees visual angle
 
         # set separately (integer parameters not suitable for gradient descent)
-        self.s = [] # stride of each connection
-        self.m = [] # number of feature maps in each layer
-        self.width = [] # width of feature maps each layer
+        self.s = []  # stride of each connection
+        self.m = []  # number of feature maps in each layer
+        self.width = []  # width of feature maps each layer
 
         # derived from w_rf and other hyperparams
-        self.w = [] # kernel widths
+        self.w = []  # kernel widths
 
         # supporting information ...
-        self.input_layers = [] #for each layer, a list of indices of layers that provide its input
-        self.input_connections = [] # for each layer, a list of indices of connections that provide input
-        self.output_connections = [] # for each layer, a list of indices of connections that carry output
-        self.pres = [] # for each connection, index of presynaptic layer
-        self.posts = [] # for each connection, index of postsynaptic layer
-        self.inter_area = [] # for each connection, True for InterAreaProjections
-        self.cortical_layer = [] # for each layer, cortical layer name or None (used for dead-end cost)
+        self.input_layers = (
+            []
+        )  # for each layer, a list of indices of layers that provide its input
+        self.input_connections = (
+            []
+        )  # for each layer, a list of indices of connections that provide input
+        self.output_connections = (
+            []
+        )  # for each layer, a list of indices of connections that carry output
+        self.pres = []  # for each connection, index of presynaptic layer
+        self.posts = []  # for each connection, index of postsynaptic layer
+        self.inter_area = []  # for each connection, True for InterAreaProjections
+        self.cortical_layer = (
+            []
+        )  # for each layer, cortical layer name or None (used for dead-end cost)
 
         for layer in network.layers:
             self.m.append(tf.constant(layer.m, dtype=tf.float32))
@@ -109,32 +131,36 @@ class NetworkVariables:
             self.output_connections.append(output_connections)
 
             cortical_layer = None
-            if '_' in layer.name:
-                cortical_layer = layer.name.split('_')[1]
+            if "_" in layer.name:
+                cortical_layer = layer.name.split("_")[1]
             self.cortical_layer.append(cortical_layer)
 
         w_rf_init = self._min_w_rfs(system, network)
         for i in range(len(w_rf_init)):
-            self.w_rf.append(get_variable('{}-w_rf_s'.format(network.layers[i].name), w_rf_init[i]))
+            self.w_rf.append(
+                get_variable("{}-w_rf_s".format(network.layers[i].name), w_rf_init[i])
+            )
 
         for connection in network.connections:
-            conn_name = '{}-{}'.format(connection.pre.name, connection.post.name)
+            conn_name = "{}-{}".format(connection.pre.name, connection.post.name)
 
             pre_ind = network.find_layer_index(connection.pre.name)
             post_ind = network.find_layer_index(connection.post.name)
 
-            self.c.append(get_variable('{}-c'.format(conn_name), connection.c))
-            self.sigma.append(get_variable('{}-s'.format(conn_name), connection.sigma))
+            self.c.append(get_variable("{}-c".format(conn_name), connection.c))
+            self.sigma.append(get_variable("{}-s".format(conn_name), connection.sigma))
 
             self.s.append(tf.constant(connection.s, dtype=tf.float32))
 
-            pre_pixel_width = image_pixel_width * self.width[image_layer] / self.width[pre_ind]
+            pre_pixel_width = (
+                image_pixel_width * self.width[image_layer] / self.width[pre_ind]
+            )
 
             # convert RF sizes from degrees visual angle to *pre-layer* pixels (units of the kernel)...
             sigma_post = tf.divide(self.w_rf[post_ind], pre_pixel_width)
             sigma_pre = tf.divide(self.w_rf[pre_ind], pre_pixel_width)
-            sigma_kernel = tf.sqrt(sigma_post**2 - sigma_pre**2)
-            w = tf.constant(12**.5) * sigma_kernel  
+            sigma_kernel = tf.sqrt(sigma_post ** 2 - sigma_pre ** 2)
+            w = tf.constant(12 ** 0.5) * sigma_kernel
             self.w.append(w)
 
             self.pres.append(pre_ind)
@@ -151,16 +177,20 @@ class NetworkVariables:
             for i in range(len(w_rf_init)):
                 if w_rf_init[i] is None:
                     min_downstream_rfs = []
-                    for input_layer in self.input_layers[i]: # layers that provide direct input to this one
+                    for input_layer in self.input_layers[
+                        i
+                    ]:  # layers that provide direct input to this one
                         w_rf_input = w_rf_init[input_layer]
                         width_input = network.layers[input_layer].width
                         if w_rf_input is None:
                             break
                         else:
                             min_downstream_rfs.append(
-                                self._get_min_downstream_w_rf(w_rf_input,
-                                                              width_input,
-                                                              network.layers[self.image_layer].width)
+                                self._get_min_downstream_w_rf(
+                                    w_rf_input,
+                                    width_input,
+                                    network.layers[self.image_layer].width,
+                                )
                             )
                     if len(min_downstream_rfs) == len(self.input_layers[i]):
                         w_rf_init[i] = np.max(min_downstream_rfs)
@@ -171,23 +201,23 @@ class NetworkVariables:
 
     def _get_min_downstream_w_rf(self, w_rf, layer_width, image_layer_width):
         sigma = w_rf / self.image_pixel_width * layer_width / image_layer_width
-        sigma_downstream = np.sqrt(sigma**2 + 1/12)
+        sigma_downstream = np.sqrt(sigma ** 2 + 1 / 12)
         return w_rf * sigma_downstream / sigma
 
 
-def get_clip_ops(vars, min=1e-4, max=1.):
+def get_clip_ops(vars, min=1e-4, max=1.0):
     # ops for clipping all variables to > 0 and <= 1
 
     result = []
     for var in vars:
-        op = tf.assign(var, tf.clip_by_value(var, min, max))
+        op = tf.compat.v1.assign(var, tf.compat.v1.clip_by_value(var, min, max))
         result.append(op)
 
     return result
 
 
 def norm_squared_error(target, actual):
-    return tf.square(tf.log(tf.divide(actual, target)))
+    return tf.math.square(tf.math.log(tf.math.divide(actual, target)))
 
 
 class Cost:
@@ -198,7 +228,9 @@ class Cost:
         :param image_layer: index of the input-image layer (defaults to 1)
         """
         self.system = SystemConstants(system)
-        self.network = NetworkVariables(network, system, image_layer, system.populations[image_layer].w)
+        self.network = NetworkVariables(
+            network, system, image_layer, system.populations[image_layer].w
+        )
 
     def _get_n_network(self, i):
         return self.network.m[i] * tf.square(self.network.width[i])
@@ -223,7 +255,9 @@ class Cost:
         """
         terms = []
         for i in range(len(self.system.e)):
-            if self.system.e[i] is not None: #skip the input layer, which has no extrinsic inputs
+            if (
+                self.system.e[i] is not None
+            ):  # skip the input layer, which has no extrinsic inputs
                 e_system = self.system.e[i]
                 e_network = self._get_e_network(i)
 
@@ -239,7 +273,12 @@ class Cost:
         for i in range(len(input_layers)):
             il = input_layers[i]
             ic = input_connections[i]
-            subtotal = tf.square(self.network.w[ic]) * self.network.c[ic] * self.network.sigma[ic] * self.network.m[il]
+            subtotal = (
+                tf.square(self.network.w[ic])
+                * self.network.c[ic]
+                * self.network.sigma[ic]
+                * self.network.m[il]
+            )
             subtotals.append(subtotal)
         return tf.reduce_sum(subtotals)
 
@@ -258,7 +297,7 @@ class Cost:
         return tf.multiply(tf.constant(kappa), tf.reduce_mean(terms))
 
     def match_cost_b(self, kappa):
-        #TODO: unit test
+        # TODO: unit test
         """
         :param kappa: weight relative to other costs
         :return: TF node for the total cost of mismatches in # of synapses onto each neuron from
@@ -272,7 +311,7 @@ class Cost:
                 terms.append(norm_squared_error(b_system, b_network))
 
         if len(terms) == 0:
-            return tf.constant(0.)
+            return tf.constant(0.0)
         else:
             return tf.constant(kappa) * tf.reduce_mean(terms)
 
@@ -293,7 +332,7 @@ class Cost:
         """
 
         terms = []
-        for ij in range(len(self.system.f)): #looping through connections
+        for ij in range(len(self.system.f)):  # looping through connections
             f_system = self.system.f[ij]
             if f_system is not None:
                 f_network = self._get_f_network(ij)
@@ -301,7 +340,7 @@ class Cost:
                 terms.append(term)
 
         if len(terms) == 0:
-            return tf.constant(0.)
+            return tf.constant(0.0)
         else:
             return tf.constant(kappa) * tf.reduce_mean(terms)
 
@@ -326,7 +365,7 @@ class Cost:
         c_ij = self.network.c[conn_ind]
         s_ij = self.network.s[conn_ind]
         w_ij = self.network.w[conn_ind]
-        alpha_ij = tf.minimum(tf.constant(1.), tf.square(w_ij / s_ij))
+        alpha_ij = tf.minimum(tf.constant(1.0), tf.square(w_ij / s_ij))
         return n_j * c_ij * self.sigma_star(conn_ind) * alpha_ij
 
     def sigma_star(self, conn_ind):
@@ -344,9 +383,9 @@ class Cost:
         s_ij = self.network.s[conn_ind]
         m_i = self.network.m[post_ind]
 
-        beta_ij = tf.maximum(tf.constant(1.), tf.square(w_ij / s_ij))
+        beta_ij = tf.maximum(tf.constant(1.0), tf.square(w_ij / s_ij))
         exponent = beta_ij * m_i
-        return tf.constant(1.) - tf.pow(tf.constant(1.)-sigma_ij, exponent)
+        return tf.constant(1.0) - tf.pow(tf.constant(1.0) - sigma_ij, exponent)
 
     def param_cost(self, kappa):
         """
@@ -373,38 +412,52 @@ class Cost:
         for i in range(self.network.n_layers):
             interlaminar_fractions = []
             interarea_fractions = []
-            if self.network.output_connections[i]: # this cost only applies if layer has outputs
+            if self.network.output_connections[
+                i
+            ]:  # this cost only applies if layer has outputs
                 for conn_ind in self.network.output_connections[i]:
                     if self.network.inter_area[conn_ind]:
                         interarea_fractions.append(self.network.c[conn_ind])
                     else:
                         interlaminar_fractions.append(self.network.c[conn_ind])
 
-                layer = '' if self.network.cortical_layer[i] is None else self.network.cortical_layer[i]
+                layer = (
+                    ""
+                    if self.network.cortical_layer[i] is None
+                    else self.network.cortical_layer[i]
+                )
 
-                if '2/3' in layer:
+                if "2/3" in layer:
                     # most neurons in L2/3 should project to L5
                     # about half should project into white matter (Callaway & Wiser, 1996, Visual Neuroscience)
                     if interarea_fractions:
-                        terms.append(tf.square(tf.reduce_sum(interarea_fractions)-0.5))
-                    terms.append(tf.square(tf.reduce_sum(interlaminar_fractions)-1.0))
-                elif '4' in layer:
-                    terms.append(tf.square(tf.reduce_sum(interlaminar_fractions)-1.0))
-                elif '5' in layer:
-                    # a minority of L5 and L6 neurons project out, but the other ones aren't
-                    # included in the feedforward model
-                    if interarea_fractions:
-                        terms.append(tf.square(tf.reduce_sum(interarea_fractions)-1.0))
+                        terms.append(
+                            tf.square(tf.reduce_sum(interarea_fractions) - 0.5)
+                        )
                     terms.append(tf.square(tf.reduce_sum(interlaminar_fractions) - 1.0))
-                elif '6' in layer:
+                elif "4" in layer:
+                    terms.append(tf.square(tf.reduce_sum(interlaminar_fractions) - 1.0))
+                elif "5" in layer:
                     # a minority of L5 and L6 neurons project out, but the other ones aren't
                     # included in the feedforward model
                     if interarea_fractions:
-                        terms.append(tf.square(tf.reduce_sum(interarea_fractions)-1.0))
+                        terms.append(
+                            tf.square(tf.reduce_sum(interarea_fractions) - 1.0)
+                        )
+                    terms.append(tf.square(tf.reduce_sum(interlaminar_fractions) - 1.0))
+                elif "6" in layer:
+                    # a minority of L5 and L6 neurons project out, but the other ones aren't
+                    # included in the feedforward model
+                    if interarea_fractions:
+                        terms.append(
+                            tf.square(tf.reduce_sum(interarea_fractions) - 1.0)
+                        )
                 else:
                     # assume all are projection cells otherwise (e.g. for LGN)
                     if interarea_fractions:
-                        terms.append(tf.square(tf.reduce_sum(interarea_fractions)-1.0))
+                        terms.append(
+                            tf.square(tf.reduce_sum(interarea_fractions) - 1.0)
+                        )
 
         return tf.constant(kappa) * tf.reduce_mean(terms)
 
@@ -413,14 +466,14 @@ class Cost:
         :param kappa: weight relative to other costs
         :return: Cost for soft constraint w_k >= 1
         """
-        return kappa * bounds(self.network.w, min_bound=1.)
+        return kappa * bounds(self.network.w, min_bound=1.0)
 
     def w_rf_constraint_cost(self, kappa):
         """
         :param kappa: weight relative to other costs
         :return: Cost for soft constraint w_rf <= 90 degrees
         """
-        return kappa * bounds(self.network.w_rf, max_bound=90.)
+        return kappa * bounds(self.network.w_rf, max_bound=90.0)
 
     def compare_system(self, system, sess):
         """
@@ -435,16 +488,20 @@ class Cost:
                 w = -1
             else:
                 w = sess.run(self.network.w_rf[i])
-            print('{}, {}, {}, {:10.6f}, {}, {:10.6f};'.format(pop.n, n, pop.e, e, pop.w, w))
+            print(
+                "{}, {}, {}, {:10.6f}, {}, {:10.6f};".format(
+                    pop.n, n, pop.e, e, pop.w, w
+                )
+            )
 
         for ij in range(len(system.projections)):
             projection = system.projections[ij]
             if isinstance(projection, InterAreaProjection):
                 f = sess.run(self._get_f_network(ij))
-                print('0, {}, {:10.6f};'.format(projection.f, f))
+                print("0, {}, {:10.6f};".format(projection.f, f))
             elif isinstance(projection, InterLaminarProjection):
                 b = sess.run(self._get_b_network(ij))
-                print('1, {}, {:10.6f};'.format(projection.b, b))
+                print("1, {}, {:10.6f};".format(projection.b, b))
 
 
 def bounds(var_list, min_bound=None, max_bound=None):
@@ -463,7 +520,7 @@ def constraint_gt(var, val):
     :param val: reference value
     :return: threshold-linear cost for constraining var to be greater than val
     """
-    return tf.maximum(tf.constant(val) - var, tf.constant(0.))
+    return tf.maximum(tf.constant(val) - var, tf.constant(0.0))
 
 
 def constraint_lt(var, val):
@@ -472,11 +529,11 @@ def constraint_lt(var, val):
     :param val: reference value
     :return: threshold-linear cost for constraining var to be less than val
     """
-    return tf.maximum(var - tf.constant(val), tf.constant(0.))
+    return tf.maximum(var - tf.constant(val), tf.constant(0.0))
 
 
-#TODO: this is only used in a test; remove test or move to test file
-def make_net_from_system(system, image_layer=0, image_channels=3.):
+# TODO: this is only used in a test; remove test or move to test file
+def make_net_from_system(system, image_layer=0, image_channels=3.0):
     """
     :return: A neural network architecture with the same nodes and connections as the given
         neurophysiological system architecture, and otherwise random hyperparameters
@@ -490,9 +547,9 @@ def make_net_from_system(system, image_layer=0, image_channels=3.):
 
         if i == image_layer:
             channels = image_channels
-            pixels = round(np.sqrt(units/image_channels))
+            pixels = round(np.sqrt(units / image_channels))
         else:
-            ratio_channels_over_pixels = np.exp(-1.5 + 3*np.random.rand())
+            ratio_channels_over_pixels = np.exp(-1.5 + 3 * np.random.rand())
             pixels = round(np.cbrt(units / ratio_channels_over_pixels))
             channels = max(1, round(ratio_channels_over_pixels * pixels))
         net.add(pop.name, channels, pixels)
@@ -500,23 +557,23 @@ def make_net_from_system(system, image_layer=0, image_channels=3.):
     # try to set strides to reasonable values
     for i in range(len(system.populations)):
         pres = system.find_pre(system.populations[i].name)
-        units = net.layers[i].m * net.layers[i].width**2
+        units = net.layers[i].m * net.layers[i].width ** 2
 
         if len(pres) > 0:
             pre_ind = system.find_population_index(pres[0].name)
             net.layers[i].width = net.layers[pre_ind].width / 1.5
-            net.layers[i].m = units / net.layers[i].width**2
+            net.layers[i].m = units / net.layers[i].width ** 2
 
     for projection in system.projections:
         pre = net.find_layer(projection.origin.name)
         post = net.find_layer(projection.termination.name)
 
-        c = .1 + .2*np.random.rand()
-        s = 1. + 9.*np.random.rand()
+        c = 0.1 + 0.2 * np.random.rand()
+        s = 1.0 + 9.0 * np.random.rand()
         rf_ratio = projection.termination.w / projection.origin.w
-        w = (rf_ratio - 1.) / (0.5 + np.random.rand())
-        w = np.maximum(.1, w)  # make sure kernel has +ve width
-        sigma = .1 + .1*np.random.rand()
+        w = (rf_ratio - 1.0) / (0.5 + np.random.rand())
+        w = np.maximum(0.1, w)  # make sure kernel has +ve width
+        sigma = 0.1 + 0.1 * np.random.rand()
         net.connect(pre, post, c, s, w, sigma)
 
     return net
@@ -547,4 +604,3 @@ def update_net_from_tf(sess, net, nv):
 #     for i in range(len(vars)):
 #         if gradients[i] is not None:
 #             print('grad wrt {}: {}'.format(vars[i].name, sess.run(gradients[i])))
-

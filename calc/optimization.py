@@ -1,8 +1,12 @@
 import pickle
 import numpy as np
 import tensorflow as tf
-from calc.stride import StridePattern, initialize_network
-from calc.conversion import get_clip_ops, update_net_from_tf, Cost
+from stride import StridePattern, initialize_network
+from conversion import get_clip_ops, update_net_from_tf, Cost
+
+from tensorflow.python.framework.ops import disable_eager_execution
+
+disable_eager_execution()
 
 
 def compare_stride_patterns(system, n=5):
@@ -22,13 +26,10 @@ def compare_stride_patterns(system, n=5):
         nets[i], training_curves[i] = optimize_network_architecture(system)
         tc = np.array(training_curves[i])
         print(tc.shape)
-        plt.semilogy(tc[:,0], tc[:,1])
+        plt.semilogy(tc[:, 0], tc[:, 1])
 
-    data = {
-        'training_curves': training_curves,
-        'nets': nets
-    }
-    with open('nets-and-training-curves.pkl', 'wb') as f:
+    data = {"training_curves": training_curves, "nets": nets}
+    with open("nets-and-training-curves.pkl", "wb") as f:
         pickle.dump(data, f)
 
     plt.show()
@@ -46,24 +47,24 @@ def optimize_network_architecture(system, stride_pattern=None, compare=True):
         stride_pattern = StridePattern(system, 32)
         stride_pattern.fill()
 
-    net = initialize_network(system, stride_pattern, image_layer=0, image_channels=3.)
+    net = initialize_network(system, stride_pattern, image_layer=0, image_channels=3.0)
 
-    optimizer = tf.train.AdamOptimizer(learning_rate=.00001)
-    print('Setting up cost structure')
+    optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=0.00001)
+    print("Setting up cost structure")
     cost = Cost(system, net)
 
-    print('Defining cost function')
+    print("Defining cost function")
 
     # pc = cost.param_cost(1e-13)
-    fc = cost.match_cost_f(1.)
-    bc = cost.match_cost_b(1.)
-    ec = cost.match_cost_e(1.)
-    wc = cost.match_cost_w(1.)
-    dec = cost.dead_end_cost(1.)
-    kc = cost.w_k_constraint_cost(1.)
-    rfc = cost.w_rf_constraint_cost(1.)
+    fc = cost.match_cost_f(1.0)
+    bc = cost.match_cost_b(1.0)
+    ec = cost.match_cost_e(1.0)
+    wc = cost.match_cost_w(1.0)
+    dec = cost.dead_end_cost(1.0)
+    kc = cost.w_k_constraint_cost(1.0)
+    rfc = cost.w_rf_constraint_cost(1.0)
 
-    c = fc + bc + ec + wc + dec + 5*kc + 5*rfc
+    c = fc + bc + ec + wc + dec + 5 * kc + 5 * rfc
 
     vars = []
     vars.extend(cost.network.c)
@@ -76,38 +77,54 @@ def optimize_network_architecture(system, stride_pattern=None, compare=True):
     clip_ops.extend(get_clip_ops(cost.network.c))
     clip_ops.extend(get_clip_ops(cost.network.sigma))
 
-    print('Setting up optimizer')
+    print("Setting up optimizer")
     opt_op = optimizer.minimize(c, var_list=vars)
 
-    init = tf.global_variables_initializer()
-    with tf.Session() as sess:
-        print('Initializing')
+    init = tf.compat.v1.global_variables_initializer()
+    with tf.compat.v1.Session() as sess:
+        print("Initializing")
         sess.run(init)
-        print('Printing')
+        print("Printing")
         update_net_from_tf(sess, net, cost.network)
         net.print()
 
         training_curve = []
         c_value = sess.run(c)
         training_curve.append((0, c_value, sess.run(dec), sess.run(kc)))
-        _print_cost(c_value, sess.run(fc), sess.run(bc), sess.run(ec), sess.run(wc), sess.run(dec))
+        _print_cost(
+            c_value,
+            sess.run(fc),
+            sess.run(bc),
+            sess.run(ec),
+            sess.run(wc),
+            sess.run(dec),
+        )
 
         iterations = 100
         for i in range(2001):
-            _run_optimization_steps(sess, opt_op, iterations=iterations, clip_ops=clip_ops)
+            _run_optimization_steps(
+                sess, opt_op, iterations=iterations, clip_ops=clip_ops
+            )
             cost_i = sess.run(c)
-            training_curve.append((iterations*i, cost_i, sess.run(dec), sess.run(kc)))
+            training_curve.append((iterations * i, cost_i, sess.run(dec), sess.run(kc)))
             print(cost_i)
 
             if np.isnan(cost_i):
-                _print_cost(cost_i, sess.run(fc), sess.run(bc), sess.run(ec), sess.run(wc), sess.run(dec))
+                _print_cost(
+                    cost_i,
+                    sess.run(fc),
+                    sess.run(bc),
+                    sess.run(ec),
+                    sess.run(wc),
+                    sess.run(dec),
+                )
                 break
 
             if i > 0 and i % 50 == 0:
-                print('saving checkpoint')
+                print("saving checkpoint")
                 update_net_from_tf(sess, net, cost.network)
-                with open('optimization-checkpoint.pkl', 'wb') as file:
-                    pickle.dump({'net': net, 'training_curve': training_curve}, file)
+                with open("optimization-checkpoint.pkl", "wb") as file:
+                    pickle.dump({"net": net, "training_curve": training_curve}, file)
 
         update_net_from_tf(sess, net, cost.network)
         net.print()
@@ -120,7 +137,7 @@ def optimize_network_architecture(system, stride_pattern=None, compare=True):
 
 def _run_optimization_steps(sess, opt_op, iterations=100, clip_ops=[]):
     for i in range(iterations):
-        print('.', end='', flush=True)
+        print(".", end="", flush=True)
         opt_op.run()
         for clip_op in clip_ops:
             sess.run(clip_op)
@@ -128,6 +145,8 @@ def _run_optimization_steps(sess, opt_op, iterations=100, clip_ops=[]):
 
 
 def _print_cost(total_cost, f_cost, b_cost, e_cost, rf_cost, de_cost):
-    print('total cost: {} f cost: {} b cost {} e cost {} RF cost: {} dead-end cost: {}'
-          .format(total_cost, f_cost, b_cost, e_cost, rf_cost, de_cost))
-
+    print(
+        "total cost: {} f cost: {} b cost {} e cost {} RF cost: {} dead-end cost: {}".format(
+            total_cost, f_cost, b_cost, e_cost, rf_cost, de_cost
+        )
+    )
