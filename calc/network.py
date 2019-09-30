@@ -137,6 +137,57 @@ class Network:
 
         return graph
 
+    def write_dot_graph(self, output_file):
+        with open(output_file, "w") as dot:
+            dot.write("digraph MSH {\n")
+            dot.write("    splines=ortho;\n")
+            dot.write("    rankdir=LR;\n")
+
+            dot.write("    # Node definitions\n")
+            for layer in self.layers:
+                dot.write(
+                    '    {0} [shape=Mrecord, style=bold, label="{0} | {{ m | w }} | {{ {1:.2g} | {2:.2g} }}"];\n'.format(
+                        layer.name.replace("/", "_"), layer.m, layer.width
+                    )
+                )
+
+            dot.write("\n")
+
+            dot.write("    # Edge definitions\n")
+            for conn in self.connections:
+                dot.write(
+                    '    {}_to_{} [shape=record, style=radial, label="{{ c | s | w | \u03C3 }} | {{ {:.4g} | {:.2g} | {:.2g} | {:.4g} }}"];\n'.format(
+                        conn.pre.name.replace("/", "_"),
+                        conn.post.name.replace("/", "_"),
+                        conn.c,
+                        conn.s,
+                        conn.w,
+                        conn.sigma,
+                    )
+                )
+
+            dot.write("    # Edges\n")
+            for conn in self.connections:
+                dot.write(
+                    "    {0} -> {0}_to_{1} -> {1};\n".format(
+                        conn.pre.name.replace("/", "_"), conn.post.name.replace("/", "_")
+                    )
+                )
+                # dot.write(
+                #     "    {0}:s -> {0}_to_{1}:n;\n".format(
+                #         conn.pre.name.replace("/", "_"),
+                #         conn.post.name.replace("/", "_"),
+                #     )
+                # )
+                # dot.write(
+                #     "    {0}_to_{1}:s -> {1}:n;\n".format(
+                #         conn.pre.name.replace("/", "_"),
+                #         conn.post.name.replace("/", "_"),
+                #     )
+                # )
+
+            dot.write("}\n")
+
     def prune_dead_ends(self, output_layers):
         graph = self.make_graph()
 
