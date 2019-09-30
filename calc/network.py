@@ -2,6 +2,7 @@
 import networkx as nx
 import numpy as np
 
+
 class Layer:
     def __init__(self, name, m, width):
         """
@@ -32,7 +33,7 @@ class Connection:
         self.sigma = sigma
 
     def get_name(self):
-        return '{}->{}'.format(self.pre.name, self.post.name)
+        return "{}->{}".format(self.pre.name, self.post.name)
 
 
 class Network:
@@ -80,11 +81,14 @@ class Network:
 
     def print(self):
         for layer in self.layers:
-            print('{} (m={:2.2f} width={:2.2f})'.format(layer.name, layer.m, layer.width))
+            print("{} (m={:2.2f} width={:2.2f})".format(layer.name, layer.m, layer.width))
 
         for conn in self.connections:
-            print('{} -> {} (c={:8.6f} s={:2.2f} w={:2.2f} sigma={:8.6f})'.format(
-                conn.pre.name, conn.post.name, conn.c, conn.s, conn.w, conn.sigma))
+            print(
+                "{} -> {} (c={:8.6f} s={:2.2f} w={:2.2f} sigma={:8.6f})".format(
+                    conn.pre.name, conn.post.name, conn.c, conn.s, conn.w, conn.sigma
+                )
+            )
 
     def find_inbounds(self, layer_name):
         """
@@ -147,14 +151,14 @@ class Network:
             # keep.append(path_exists_to_output)
             if not path_exists_to_output:
                 remove.append(layer.name)
-                print('Pruning {}'.format(layer.name))
+                print("Pruning {}".format(layer.name))
 
         removed_indices = []
         for layer_name in remove:
             removed_indices.append(self.find_layer_index(layer_name))
 
         for layer_name in remove:
-                self.remove_layer(layer_name)
+            self.remove_layer(layer_name)
 
         return removed_indices
 
@@ -164,7 +168,7 @@ class Network:
         :param factor factor to scale by
         """
         for connection in self.connections:
-            connection.c = np.exp(np.log(connection.c)*factor)
+            connection.c = np.exp(np.log(connection.c) * factor)
 
     def scale_sigma(self, factor):
         """
@@ -172,5 +176,4 @@ class Network:
         :param factor factor to scale by
         """
         for connection in self.connections:
-            connection.sigma = np.exp(np.log(connection.sigma)*factor)
-
+            connection.sigma = np.exp(np.log(connection.sigma) * factor)

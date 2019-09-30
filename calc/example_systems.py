@@ -37,9 +37,7 @@ def connect_areas(system, cortical_areas):
                 infra_source_pop = "{}_5".format(source)
                 target_pop = "{}_4".format(target)
                 system.connect_areas(supra_source_pop, target_pop, FLNe * SLN / 100)
-                system.connect_areas(
-                    infra_source_pop, target_pop, FLNe * (1 - SLN / 100)
-                )
+                system.connect_areas(infra_source_pop, target_pop, FLNe * (1 - SLN / 100))
 
 
 def connect_areas_in_streams(system, cortical_areas):
@@ -64,12 +62,8 @@ def connect_areas_in_streams(system, cortical_areas):
                 if source == "V1":
                     if is_ventral(target):
                         # V4 gets 2/3 input, not sure about others
-                        system.connect_areas(
-                            "V1_2/3blob", target_pop, 0.333 * FLNe * SLN / 100
-                        )
-                        system.connect_areas(
-                            "V1_2/3interblob", target_pop, 0.667 * FLNe * SLN / 100
-                        )
+                        system.connect_areas("V1_2/3blob", target_pop, 0.333 * FLNe * SLN / 100)
+                        system.connect_areas("V1_2/3interblob", target_pop, 0.667 * FLNe * SLN / 100)
                         system.connect_areas("V1_5", target_pop, FLNe * (1 - SLN / 100))
                     else:
                         # true for MT, not sure about others
@@ -78,60 +72,26 @@ def connect_areas_in_streams(system, cortical_areas):
                     if is_ventral(target):
                         thin_fraction = 0.333
                         pale_fraction = 0.667
-                        system.connect_areas(
-                            "V2thin_2/3", target_pop, thin_fraction * FLNe * SLN / 100
-                        )
-                        system.connect_areas(
-                            "V2thin_5",
-                            target_pop,
-                            fl5 * thin_fraction * FLNe * (1 - SLN / 100),
-                        )
-                        system.connect_areas(
-                            "V2thin_6",
-                            target_pop,
-                            fl6 * thin_fraction * FLNe * (1 - SLN / 100),
-                        )
-                        system.connect_areas(
-                            "V2pale_2/3", target_pop, pale_fraction * FLNe * SLN / 100
-                        )
-                        system.connect_areas(
-                            "V2pale_5",
-                            target_pop,
-                            fl5 * pale_fraction * FLNe * (1 - SLN / 100),
-                        )
-                        system.connect_areas(
-                            "V2pale_6",
-                            target_pop,
-                            fl6 * pale_fraction * FLNe * (1 - SLN / 100),
-                        )
+                        system.connect_areas("V2thin_2/3", target_pop, thin_fraction * FLNe * SLN / 100)
+                        system.connect_areas("V2thin_5", target_pop, fl5 * thin_fraction * FLNe * (1 - SLN / 100))
+                        system.connect_areas("V2thin_6", target_pop, fl6 * thin_fraction * FLNe * (1 - SLN / 100))
+                        system.connect_areas("V2pale_2/3", target_pop, pale_fraction * FLNe * SLN / 100)
+                        system.connect_areas("V2pale_5", target_pop, fl5 * pale_fraction * FLNe * (1 - SLN / 100))
+                        system.connect_areas("V2pale_6", target_pop, fl6 * pale_fraction * FLNe * (1 - SLN / 100))
                     else:
-                        system.connect_areas(
-                            "V2thick_2/3", target_pop, FLNe * SLN / 100
-                        )
-                        system.connect_areas(
-                            "V2thick_5", target_pop, fl5 * FLNe * (1 - SLN / 100)
-                        )
-                        system.connect_areas(
-                            "V2thick_6", target_pop, fl6 * FLNe * (1 - SLN / 100)
-                        )
+                        system.connect_areas("V2thick_2/3", target_pop, FLNe * SLN / 100)
+                        system.connect_areas("V2thick_5", target_pop, fl5 * FLNe * (1 - SLN / 100))
+                        system.connect_areas("V2thick_6", target_pop, fl6 * FLNe * (1 - SLN / 100))
                 else:
-                    system.connect_areas(
-                        "{}_2/3".format(source), target_pop, FLNe * SLN / 100
-                    )
-                    system.connect_areas(
-                        "{}_5".format(source), target_pop, fl5 * FLNe * (1 - SLN / 100)
-                    )
-                    system.connect_areas(
-                        "{}_6".format(source), target_pop, fl6 * FLNe * (1 - SLN / 100)
-                    )
+                    system.connect_areas("{}_2/3".format(source), target_pop, FLNe * SLN / 100)
+                    system.connect_areas("{}_5".format(source), target_pop, fl5 * FLNe * (1 - SLN / 100))
+                    system.connect_areas("{}_6".format(source), target_pop, fl6 * FLNe * (1 - SLN / 100))
 
 
 def _get_layer_56_source_fractions(source_area, target_area):
     result = (0.5, 0.5)
 
-    details = cocomac.get_connection_details(
-        source_area, target_area, guess_missing=True, guess_x=True
-    )
+    details = cocomac.get_connection_details(source_area, target_area, guess_missing=True, guess_x=True)
 
     if details and details["source_layers"]:
         l5_strength = float(details["source_layers"][4])
@@ -145,18 +105,7 @@ def _get_layer_56_source_fractions(source_area, target_area):
 
 def is_ventral(area):
     # see Schmidt et al. (2018) Fig 7 re. V4t
-    return area in [
-        "V4",
-        "VOT",
-        "PITd",
-        "PITv",
-        "CITd",
-        "CITv",
-        "AITd",
-        "AITv",
-        "TF",
-        "TH",
-    ]
+    return area in ["V4", "VOT", "PITd", "PITv", "CITd", "CITv", "AITd", "AITv", "TF", "TH"]
 
 
 def make_big_system(cortical_areas=None):
@@ -199,9 +148,7 @@ def make_big_system(cortical_areas=None):
     # Pixels correspond roughly to retinal ganglion cells
     # Setting LGN RF sizes similar to input (one-pixel kernels)
     system.add("parvo_LGN", n_parvo_LGN, 5, 1.041 * w_rf_0)
-    system.add(
-        "magno_LGN", n_magno_LGN, 5, 1.155 * w_rf_0
-    )  # TODO reconsider; see Livingston & Hubel (1988)
+    system.add("magno_LGN", n_magno_LGN, 5, 1.155 * w_rf_0)  # TODO reconsider; see Livingston & Hubel (1988)
     system.add(
         "konio_LGN", n_konio_LGN, 5, 1.155 * w_rf_0
     )  # RF sizes highly scattered but comparable to Magno (Xu et al., 2004, J Physiol)
@@ -234,38 +181,20 @@ def make_big_system(cortical_areas=None):
     system.connect_areas("magno_LGN", "V1_4Calpha", 1.0)
     system.connect_areas("konio_LGN", "V1_2/3blob", 1.0)
     system.connect_areas("konio_LGN", "V1_2/3interblob", 1.0)
-    system.connect_layers(
-        "V1_4Calpha", "V1_4B", data.get_inputs_per_neuron("V1", "4", "2/3")
-    )
-    system.connect_layers(
-        "V1_4Cbeta", "V1_2/3blob", 0.5 * data.get_inputs_per_neuron("V1", "4", "2/3")
-    )
-    system.connect_layers(
-        "V1_4Cbeta", "V1_2/3interblob", data.get_inputs_per_neuron("V1", "4", "2/3")
-    )
+    system.connect_layers("V1_4Calpha", "V1_4B", data.get_inputs_per_neuron("V1", "4", "2/3"))
+    system.connect_layers("V1_4Cbeta", "V1_2/3blob", 0.5 * data.get_inputs_per_neuron("V1", "4", "2/3"))
+    system.connect_layers("V1_4Cbeta", "V1_2/3interblob", data.get_inputs_per_neuron("V1", "4", "2/3"))
 
     # feedforward magno input to ventral areas (see Merigan & Maunsell, 1983, pg 386)
-    system.connect_layers(
-        "V1_4Calpha", "V1_2/3blob", 0.5 * data.get_inputs_per_neuron("V1", "4", "2/3")
-    )
+    system.connect_layers("V1_4Calpha", "V1_2/3blob", 0.5 * data.get_inputs_per_neuron("V1", "4", "2/3"))
 
     # Tootell et al. (1988) (IV)
-    system.connect_layers(
-        "V1_2/3blob", "V1_5", 0.5 * data.get_inputs_per_neuron("V1", "2/3", "5")
-    )
-    system.connect_layers(
-        "V1_2/3interblob", "V1_5", 0.5 * data.get_inputs_per_neuron("V1", "2/3", "5")
-    )
-    system.connect_layers(
-        "V1_4Cbeta", "V1_5", data.get_inputs_per_neuron("V1", "4", "5")
-    )
+    system.connect_layers("V1_2/3blob", "V1_5", 0.5 * data.get_inputs_per_neuron("V1", "2/3", "5"))
+    system.connect_layers("V1_2/3interblob", "V1_5", 0.5 * data.get_inputs_per_neuron("V1", "2/3", "5"))
+    system.connect_layers("V1_4Cbeta", "V1_5", data.get_inputs_per_neuron("V1", "4", "5"))
 
-    system.connect_layers(
-        "V1_2/3blob", "V1_6", data.get_inputs_per_neuron("V1", "2/3", "6")
-    )
-    system.connect_layers(
-        "V1_4Calpha", "V1_6", data.get_inputs_per_neuron("V1", "4", "6")
-    )
+    system.connect_layers("V1_2/3blob", "V1_6", data.get_inputs_per_neuron("V1", "2/3", "6"))
+    system.connect_layers("V1_4Calpha", "V1_6", data.get_inputs_per_neuron("V1", "4", "6"))
     system.connect_layers("V1_5", "V1_6", data.get_inputs_per_neuron("V1", "5", "6"))
 
     for area in ["V2thick", "V2thin", "V2pale"]:
@@ -281,29 +210,15 @@ def make_big_system(cortical_areas=None):
             system.add(name, n, e, w)
 
         system.connect_layers(
-            _pop_name(area, "4"),
-            _pop_name(area, "2/3"),
-            data.get_inputs_per_neuron("V2", "4", "2/3"),
+            _pop_name(area, "4"), _pop_name(area, "2/3"), data.get_inputs_per_neuron("V2", "4", "2/3")
         )
         system.connect_layers(
-            _pop_name(area, "2/3"),
-            _pop_name(area, "5"),
-            data.get_inputs_per_neuron("V2", "2/3", "5"),
+            _pop_name(area, "2/3"), _pop_name(area, "5"), data.get_inputs_per_neuron("V2", "2/3", "5")
         )
+        system.connect_layers(_pop_name(area, "4"), _pop_name(area, "5"), data.get_inputs_per_neuron("V2", "4", "5"))
+        system.connect_layers(_pop_name(area, "5"), _pop_name(area, "6"), data.get_inputs_per_neuron("V2", "5", "6"))
         system.connect_layers(
-            _pop_name(area, "4"),
-            _pop_name(area, "5"),
-            data.get_inputs_per_neuron("V2", "4", "5"),
-        )
-        system.connect_layers(
-            _pop_name(area, "5"),
-            _pop_name(area, "6"),
-            data.get_inputs_per_neuron("V2", "5", "6"),
-        )
-        system.connect_layers(
-            _pop_name(area, "2/3"),
-            _pop_name(area, "6"),
-            data.get_inputs_per_neuron("V2", "2/3", "6"),
+            _pop_name(area, "2/3"), _pop_name(area, "6"), data.get_inputs_per_neuron("V2", "2/3", "6")
         )
 
     # There is substantial forward projection from V1_5 to V2 and V3, also from V2_5 to V3. We assume V1_5 is
@@ -381,41 +296,21 @@ def _get_num_ff_neurons(area, layer):
 
 def _add_intrinsic_forward_connections(system, area):
     if area == "V1":
-        system.connect_layers(
-            "V1_4Cbeta", "V1_2/3", data.get_inputs_per_neuron(area, "4", "2/3")
-        )
-        system.connect_layers(
-            "V1_2/3", "V1_5", data.get_inputs_per_neuron(area, "2/3", "5")
-        )
-        system.connect_layers(
-            "V1_4Cbeta", "V1_5", data.get_inputs_per_neuron("V1", "4", "5")
-        )
+        system.connect_layers("V1_4Cbeta", "V1_2/3", data.get_inputs_per_neuron(area, "4", "2/3"))
+        system.connect_layers("V1_2/3", "V1_5", data.get_inputs_per_neuron(area, "2/3", "5"))
+        system.connect_layers("V1_4Cbeta", "V1_5", data.get_inputs_per_neuron("V1", "4", "5"))
     else:
         system.connect_layers(
-            _pop_name(area, "4"),
-            _pop_name(area, "2/3"),
-            data.get_inputs_per_neuron(area, "4", "2/3"),
+            _pop_name(area, "4"), _pop_name(area, "2/3"), data.get_inputs_per_neuron(area, "4", "2/3")
         )
         system.connect_layers(
-            _pop_name(area, "2/3"),
-            _pop_name(area, "5"),
-            data.get_inputs_per_neuron(area, "2/3", "5"),
+            _pop_name(area, "2/3"), _pop_name(area, "5"), data.get_inputs_per_neuron(area, "2/3", "5")
         )
+        system.connect_layers(_pop_name(area, "4"), _pop_name(area, "5"), data.get_inputs_per_neuron(area, "4", "5"))
         system.connect_layers(
-            _pop_name(area, "4"),
-            _pop_name(area, "5"),
-            data.get_inputs_per_neuron(area, "4", "5"),
+            _pop_name(area, "2/3"), _pop_name(area, "6"), data.get_inputs_per_neuron(area, "2/3", "6")
         )
-        system.connect_layers(
-            _pop_name(area, "2/3"),
-            _pop_name(area, "6"),
-            data.get_inputs_per_neuron(area, "2/3", "6"),
-        )
-        system.connect_layers(
-            _pop_name(area, "5"),
-            _pop_name(area, "6"),
-            data.get_inputs_per_neuron(area, "5", "6"),
-        )
+        system.connect_layers(_pop_name(area, "5"), _pop_name(area, "6"), data.get_inputs_per_neuron(area, "5", "6"))
 
 
 def miniaturize(system, factor=10):

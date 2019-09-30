@@ -15,9 +15,9 @@ class Data:
         self.sd = SchmidtData()
 
         histogram = np.array(FS09_synapses_per_connection)
-        self.synapses_per_connection = np.dot(histogram[:,0], histogram[:,1]) / np.sum(histogram[:,1])
+        self.synapses_per_connection = np.dot(histogram[:, 0], histogram[:, 1]) / np.sum(histogram[:, 1])
 
-        with open('./data_files/schmidt/default_Data_Model_.json', 'r') as f:
+        with open("./data_files/schmidt/default_Data_Model_.json", "r") as f:
             self.dat = json.load(f)
 
     def get_areas(self):
@@ -41,10 +41,10 @@ class Data:
         :return: Estimated number of excitatory neurons in the given area/layer per hemisphere; we
             assume convolutional units are similar to excitatory neurons based on Parisien et al. (2008).
         """
-        if area == 'V1': # break down by sublayer according to Garcia-Marin et al.
-            fraction_of_v1 = GMKH17_density_per_mm2_V1[layer] / GMKH17_density_per_mm2_V1['1-6']
+        if area == "V1":  # break down by sublayer according to Garcia-Marin et al.
+            fraction_of_v1 = GMKH17_density_per_mm2_V1[layer] / GMKH17_density_per_mm2_V1["1-6"]
             v1_total = 0
-            for l in ['2/3', '4', '5', '6']:
+            for l in ["2/3", "4", "5", "6"]:
                 v1_total += self.sd.neuron_numbers(area, l)
             return fraction_of_v1 * v1_total
         else:
@@ -73,8 +73,8 @@ class Data:
         :param target_layer: A cortical layer
         :return: Estimated number of feedforward inputs per neuron from outside this area
         """
-        if area == 'V1':
-            return 8 # estimate from Garcia-Marin et al. (2017)
+        if area == "V1":
+            return 8  # estimate from Garcia-Marin et al. (2017)
         else:
             spn = self.sd.interarea_synapses_per_neuron(area, target_layer)
             return spn / self.synapses_per_connection
@@ -101,10 +101,136 @@ class Data:
         return self.SLN[target_index, source_index]
 
 
-areas_M132 = ['???', '1', '2', '3', '5', '9', '10', '11', '12', '13', '14', '23', '25', '31', '32', '44', '24a', '24b', '24c', '24d', '29/30', '45A', '45B', '46d', '46v', '7A', '7B', '7m', '7op', '8B', '8l', '8m', '8r', '9/46d', '9/46v', 'AIP', 'CORE', 'DP', 'ENTORHINAL', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'FST', 'Gu', 'INSULA', 'IPa', 'LB', 'LIP', 'MB', 'MIP', 'MST', 'MT', 'OPAI', 'OPRO', 'Parainsula', 'PBc', 'PBr', 'PERIRHINAL', 'PGa', 'PIP', 'PIRIFORM', 'ProM', 'Pro.St', 'SII', 'STPc', 'STPi', 'STPr', 'SUBICULUM', 'TEad', 'TEa/ma', 'TEa/mp', 'TEav', 'TEMPORAL_POLE', 'TEO', 'TEOm', 'TEpd', 'TEpv', 'TH/TF', 'TPt', 'V1', 'V2', 'V3', 'V3A', 'V4', 'V4t', 'V6', 'V6A', 'VIP']
+areas_M132 = [
+    "???",
+    "1",
+    "2",
+    "3",
+    "5",
+    "9",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "23",
+    "25",
+    "31",
+    "32",
+    "44",
+    "24a",
+    "24b",
+    "24c",
+    "24d",
+    "29/30",
+    "45A",
+    "45B",
+    "46d",
+    "46v",
+    "7A",
+    "7B",
+    "7m",
+    "7op",
+    "8B",
+    "8l",
+    "8m",
+    "8r",
+    "9/46d",
+    "9/46v",
+    "AIP",
+    "CORE",
+    "DP",
+    "ENTORHINAL",
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5",
+    "F6",
+    "F7",
+    "FST",
+    "Gu",
+    "INSULA",
+    "IPa",
+    "LB",
+    "LIP",
+    "MB",
+    "MIP",
+    "MST",
+    "MT",
+    "OPAI",
+    "OPRO",
+    "Parainsula",
+    "PBc",
+    "PBr",
+    "PERIRHINAL",
+    "PGa",
+    "PIP",
+    "PIRIFORM",
+    "ProM",
+    "Pro.St",
+    "SII",
+    "STPc",
+    "STPi",
+    "STPr",
+    "SUBICULUM",
+    "TEad",
+    "TEa/ma",
+    "TEa/mp",
+    "TEav",
+    "TEMPORAL_POLE",
+    "TEO",
+    "TEOm",
+    "TEpd",
+    "TEpv",
+    "TH/TF",
+    "TPt",
+    "V1",
+    "V2",
+    "V3",
+    "V3A",
+    "V4",
+    "V4t",
+    "V6",
+    "V6A",
+    "VIP",
+]
 
 
-areas_FV91 = ['V1', 'V2', 'VP', 'V3', 'V3A', 'MT', 'V4t', 'V4', 'VOT', 'MSTd', 'PIP', 'PO', 'DP', 'MIP', 'MDP', 'VIP', 'LIP', 'PITv', 'PITd', 'MSTl', 'CITv', 'CITd', 'FEF', 'TF', 'AITv', 'FST', '7a', 'STPp', 'STPa', '46', 'AITd', 'TH']
+areas_FV91 = [
+    "V1",
+    "V2",
+    "VP",
+    "V3",
+    "V3A",
+    "MT",
+    "V4t",
+    "V4",
+    "VOT",
+    "MSTd",
+    "PIP",
+    "PO",
+    "DP",
+    "MIP",
+    "MDP",
+    "VIP",
+    "LIP",
+    "PITv",
+    "PITd",
+    "MSTl",
+    "CITv",
+    "CITd",
+    "FEF",
+    "TF",
+    "AITv",
+    "FST",
+    "7a",
+    "STPp",
+    "STPa",
+    "46",
+    "AITd",
+    "TH",
+]
 
 
 class InterAreaConnections:
@@ -124,6 +250,7 @@ class InterAreaConnections:
     We use trends in the data to fill in missing values for areas not injected by Markov et al.
     We only consider connections that are identified in CoCoMac 2.0.
     """
+
     def __init__(self, cocomac=None, markov=None):
         if not cocomac:
             cocomac = CoCoMac()
@@ -134,7 +261,7 @@ class InterAreaConnections:
         self.markov = markov
         self.areas = areas_FV91
 
-        with open('./data_files/schmidt/default_Data_Model_.json', 'r') as f:
+        with open("./data_files/schmidt/default_Data_Model_.json", "r") as f:
             self.dat = json.load(f)
 
     def get_connectivity_grid(self):
@@ -148,7 +275,7 @@ class InterAreaConnections:
         for i in range(n):
             for source in self.cocomac.get_source_areas(self.areas[i]):
                 if source in self.areas and source != self.areas[i]:
-                    grid[i,self.areas.index(source)] = 1
+                    grid[i, self.areas.index(source)] = 1
         return grid
 
     def get_M132_FLNe(self, target):
@@ -163,13 +290,13 @@ class InterAreaConnections:
 
     def get_interpolated_SLN_Schmidt(self):
         n = len(self.areas)
-        result = np.nan * np.zeros((n,n))
+        result = np.nan * np.zeros((n, n))
         for i in range(n):
-            d = self.dat['SLN_Data'][self.areas[i]]
+            d = self.dat["SLN_Data"][self.areas[i]]
             for j in range(n):
                 if self.areas[j] in d:
                     # print('{} {}'.format(self.areas[i], self.areas[j]))
-                    result[i,j] = d[self.areas[j]]
+                    result[i, j] = d[self.areas[j]]
 
         result = np.multiply(result, self.get_connectivity_grid())
         result[np.where(result == 0)] = np.nan
@@ -178,35 +305,35 @@ class InterAreaConnections:
 
     def get_interpolated_FLNe_Schmidt(self):
         n = len(self.areas)
-        interpolated_FLNe = np.zeros((n,n))
+        interpolated_FLNe = np.zeros((n, n))
         for i in range(n):
-            d = self.dat['FLN_completed'][self.areas[i]]
+            d = self.dat["FLN_completed"][self.areas[i]]
             for j in range(n):
                 if self.areas[j] in d:
-                    interpolated_FLNe[i,j] = d[self.areas[j]]
+                    interpolated_FLNe[i, j] = d[self.areas[j]]
 
         result = np.multiply(interpolated_FLNe, self.get_connectivity_grid())
 
         # make all the rows sum to 1
         for i in range(n):
-            total_fraction = np.sum(result[i,:])
+            total_fraction = np.sum(result[i, :])
             if total_fraction > 0:
-                result[i,:] = result[i,:] / total_fraction
+                result[i, :] = result[i, :] / total_fraction
 
         return result
 
     def compare_markov_and_non_markov_connection_strengths(self):
         n = len(self.areas)
-        interpolated_FLNe = np.zeros((n,n))
+        interpolated_FLNe = np.zeros((n, n))
         for i in range(n):
-            d = self.dat['FLN_completed'][self.areas[i]]
+            d = self.dat["FLN_completed"][self.areas[i]]
             for j in range(n):
                 if self.areas[j] in d:
-                    interpolated_FLNe[i,j] = d[self.areas[j]]
+                    interpolated_FLNe[i, j] = d[self.areas[j]]
 
         grid = self.get_connectivity_grid()
 
-        remapped_areas = ['V1', 'V2', 'V4', 'MSTd', 'DP', 'CITv', 'FEF', '7a', 'STPp', 'STPa', '46']
+        remapped_areas = ["V1", "V2", "V4", "MSTd", "DP", "CITv", "FEF", "7a", "STPp", "STPa", "46"]
         markov = []
         non_markov = []
         for i in range(n):
@@ -218,7 +345,7 @@ class InterAreaConnections:
                         else:
                             non_markov.append(interpolated_FLNe[i][j])
 
-        print('connection strength ratio: {}'.format(np.mean(non_markov) / np.mean(markov)))
+        print("connection strength ratio: {}".format(np.mean(non_markov) / np.mean(markov)))
 
         markov = np.log10(markov)
         non_markov = np.log10(non_markov)
@@ -230,18 +357,18 @@ class InterAreaConnections:
         # Compare Markov et al. Figure 9 (mode of NFP strengths is about -4.5, in
         # contrast with about -3 here).
         bins = np.linspace(low, high, 21)
-        plt.figure(figsize=(4,3))
-        plt.subplot(2,1,1)
+        plt.figure(figsize=(4, 3))
+        plt.subplot(2, 1, 1)
         plt.hist(markov, bins)
         plt.ylim((0, 30))
-        plt.ylabel('Count')
-        plt.title('Remapped connections in CoCoMac')
-        plt.subplot(2,1,2)
+        plt.ylabel("Count")
+        plt.title("Remapped connections in CoCoMac")
+        plt.subplot(2, 1, 2)
         plt.hist(non_markov, bins)
         plt.ylim((0, 30))
-        plt.ylabel('Count')
-        plt.xlabel('Log-FLN')
-        plt.title('Remapped connections not in CoCoMac')
+        plt.ylabel("Count")
+        plt.xlabel("Log-FLN")
+        plt.title("Remapped connections not in CoCoMac")
         plt.tight_layout()
         plt.show()
 
@@ -256,7 +383,7 @@ def sigmoid(x, centre, gain):
     :param gain: linearly related to the slope at the centre
     :return: sigmoid function of x with parameters centre and gain
     """
-    return 1 / (1 + np.exp(-gain*(x-centre)))
+    return 1 / (1 + np.exp(-gain * (x - centre)))
 
 
 """ 
@@ -267,73 +394,1129 @@ macaque visual cortex,” Brain Struct. Funct., vol. 223, no. 3, pp. 1409–1435
 # Note most of these are similar to surface areas in FV91, but some are quite different, e.g. V1 (1484.63 vs. 1120),
 # DP (113.83 vs. 50), and STPp (245.48 vs. 120).
 S18_surface_area = {
-    'V1': 1484.63,
-    'V3': 120.57,
-    'PO': 75.37,
-    'V2': 1193.40,
-    'CITv': 114.67,
-    'VOT': 70.11,
-    'V4': 561.41,
-    'DP': 113.83,
-    'FST': 61.33,
-    'STPp': 245.48,
-    'PIP': 106.15,
-    'CITd': 57.54,
-    'TF': 197.40,
-    'PITv': 100.34,
-    'LIP': 56.04,
-    '46': 185.16,
-    'V3A': 96.96,
-    'MT': 55.90,
-    'FEF': 161.54,
-    'AITv': 93.12,
-    'MIP': 45.09,
-    '7a': 157.34,
-    'AITd': 91.59,
-    'TH': 44.60,
-    'PITd': 145.38,
-    'VIP': 85.06,
-    'MSTl': 29.19,
-    'VP': 130.58,
-    'STPa': 78.72,
-    'V4t': 28.23,
-    'MSTd': 120.57,
-    'MDP': 77.49
+    "V1": 1484.63,
+    "V3": 120.57,
+    "PO": 75.37,
+    "V2": 1193.40,
+    "CITv": 114.67,
+    "VOT": 70.11,
+    "V4": 561.41,
+    "DP": 113.83,
+    "FST": 61.33,
+    "STPp": 245.48,
+    "PIP": 106.15,
+    "CITd": 57.54,
+    "TF": 197.40,
+    "PITv": 100.34,
+    "LIP": 56.04,
+    "46": 185.16,
+    "V3A": 96.96,
+    "MT": 55.90,
+    "FEF": 161.54,
+    "AITv": 93.12,
+    "MIP": 45.09,
+    "7a": 157.34,
+    "AITd": 91.59,
+    "TH": 44.60,
+    "PITd": 145.38,
+    "VIP": 85.06,
+    "MSTl": 29.19,
+    "VP": 130.58,
+    "STPa": 78.72,
+    "V4t": 28.23,
+    "MSTd": 120.57,
+    "MDP": 77.49,
 }
 
 S18_distance = [
-    [0,17.9,19.9,14.6,16.8,22.5,23.1,22.9,29,26.8,18.8,21.5,23.7,24.5,29.2,26.3,27.8,32.9,31.6,28.4,38.8,37.7,57.1,29.6,43.8,33.7,28.2,38,44.3,62.9,46.3,30.8],
-    [17.9,0,16.1,17.8,18.2,20,20.5,21.2,24.5,24.4,19.8,23.8,24.6,26,30.8,25.8,27.6,28,27.3,24.4,33.4,32.5,53.9,24.8,38.2,28.9,27.6,34.3,39.2,59.5,40.9,26.3],
-    [19.9,16.1,0,20.8,19,14.9,15.1,14.6,12.8,20.9,20.1,25.2,25.4,26.9,31.9,25.5,28,16.8,17.8,17.4,22.4,22,48.3,16.3,28.2,20.3,27.4,27.7,30.2,54.1,31.2,19.9],
-    [14.6,17.8,20.8,0,8.1,15.9,17,18.5,26.9,19.4,10.6,14.6,15.1,16.9,22,18.1,19.3,30.4,27.4,22.6,36,34.3,50,27.4,41.1,28.8,19.9,31.7,40.2,55.9,43.3,27.5],
-    [16.8,18.2,19,8.1,0,12.4,13.4,15.6,23.4,15.4,9.2,15,9.4,16.3,21.2,13.8,14.6,26.8,23.5,18.9,32.7,31,45.8,24.7,38.1,25.6,14.5,28.1,37.1,51.8,40.4,25.1],
-    [22.5,20,14.9,15.9,12.4,0,6,11.4,13.7,10,13.2,19.1,16.6,20,23.9,13.7,16,16.3,13.1,8.2,21.6,19.5,37.9,15.8,26.6,14.2,15.5,18.1,25.5,43.9,28.4,17.1],
-    [23.1,20.5,15.1,17,13.4,6,0,9.9,12.1,12.1,15.2,21.3,17.8,22.1,26.3,16.4,18.6,14.8,11.6,9.9,21.1,19.2,40.3,17.1,27,15.7,18,20,27,46.4,29,18.9],
-    [22.9,21.2,14.6,18.5,15.6,11.4,9.9,0,13.1,17.8,18.6,24.6,20.4,25.6,30.5,21.4,23.3,16.3,14.1,15.7,22.5,20.9,45.8,20.1,28.9,19.2,22.4,25.5,30,51.5,30.3,22.6],
-    [29,24.5,12.8,26.9,23.4,13.7,12.1,13.1,0,19.7,24.6,30,28.5,31,36,26.6,29.1,7.4,8.6,13.2,12.9,12.2,42.1,14.4,19.5,12.8,27.8,22.5,21.8,47.7,21.6,18.1],
-    [26.8,24.4,20.9,19.4,15.4,10,12.1,17.8,19.7,0,14.5,20.6,17.1,20.2,24.1,11.5,12.4,21.5,18.7,9.1,25.7,23.2,36.4,20.2,30.1,16.5,11,16,27.3,42.4,31.6,20.6],
-    [18.8,19.8,20.1,10.6,9.2,13.2,15.2,18.6,24.6,14.5,0,9.5,12.3,9.8,14.2,11.2,13.6,27.6,24.8,18,32.4,30.5,42.9,23.5,36.7,24.6,14.5,27.2,35.3,49,39,22.4],
-    [21.5,23.8,25.2,14.6,15,19.1,21.3,24.6,30,20.6,9.5,0,18.9,6.9,10,16,19.5,32.9,30.6,24,37.6,35.9,47.9,28,41.4,29.8,20.9,32.9,40.4,53.3,43.9,26.2],
-    [23.7,24.6,25.4,15.1,9.4,16.6,17.8,20.4,28.5,17.1,12.3,18.9,0,18.3,22,11.1,10.1,31.9,28.2,22.7,37.7,35.7,46.2,29.8,42.7,29.6,11.5,30.8,40.9,52,44.7,29.4],
-    [24.5,26,26.9,16.9,16.3,20,22.1,25.6,31,20.2,9.8,6.9,18.3,0,6.3,14.6,18.2,34,31.4,24.2,38.8,37,45.4,29.5,42.5,30.6,20,33,41,50.8,44.7,28.2],
-    [29.2,30.8,31.9,22,21.2,23.9,26.3,30.5,36,24.1,14.2,10,22,6.3,0,17.4,21.1,38.7,35.9,28.3,43.1,41,46.7,33.7,46.7,34.2,23.2,36.6,44.5,52,48.9,31.4],
-    [26.3,25.8,25.5,18.1,13.8,13.7,16.4,21.4,26.6,11.5,11.2,16,11.1,14.6,17.4,0,7.4,28.8,25.7,16.9,33.1,30.7,36.8,25.9,36.5,23.8,9.4,24.3,33.6,42.6,38.1,24.9],
-    [27.8,27.6,28,19.3,14.6,16,18.6,23.3,29.1,12.4,13.6,19.5,10.1,18.2,21.1,7.4,0,31.2,28,18.7,35.5,33.1,39,28.9,39.5,26.2,7.1,25.5,36.2,45.1,40.9,28.2],
-    [32.9,28,16.8,30.4,26.8,16.3,14.8,16.3,7.4,21.5,27.6,32.9,31.9,34,38.7,28.8,31.2,0,8.3,13.9,9.3,8.3,40.5,14.1,15.4,11.2,29.7,21.6,18.4,45.8,17.2,18.1],
-    [31.6,27.3,17.8,27.4,23.5,13.1,11.6,14.1,8.6,18.7,24.8,30.6,28.2,31.4,35.9,25.7,28,8.3,0,12.1,12.7,10.4,39.9,15.8,19.1,10.9,26.5,20.2,20.2,45.4,19.7,19.2],
-    [28.4,24.4,17.4,22.6,18.9,8.2,9.9,15.7,13.2,9.1,18,24,22.7,24.2,28.3,16.9,18.7,13.9,12.1,0,17.7,15.1,32.4,14.3,22.2,8.8,17.2,11.9,19.8,38.4,23.9,15.8],
-    [38.8,33.4,22.4,36,32.7,21.6,21.1,22.5,12.9,25.7,32.4,37.6,37.7,38.8,43.1,33.1,35.5,9.3,12.7,17.7,0,6.4,38.7,14.6,9.3,11.8,33.9,20.9,13.8,43.2,10.9,18.3],
-    [37.7,32.5,22,34.3,31,19.5,19.2,20.9,12.2,23.2,30.5,35.9,35.7,37,41,30.7,33.1,8.3,10.4,15.1,6.4,0,36.5,13.9,10.3,9,31.4,18.5,12.4,41.2,10.7,17.2],
-    [57.1,53.9,48.3,50,45.8,37.9,40.3,45.8,42.1,36.4,42.9,47.9,46.2,45.4,46.7,36.8,39,40.5,39.9,32.4,38.7,36.5,0,39.9,36.5,30.5,39.4,33.3,29.3,11.2,35.2,39.8],
-    [29.6,24.8,16.3,27.4,24.7,15.8,17.1,20.1,14.4,20.2,23.5,28,29.8,29.5,33.7,25.9,28.9,14.1,15.8,14.3,14.6,13.9,39.9,0,16.4,12.7,27.9,21.7,19,44.7,19.6,9.7],
-    [43.8,38.2,28.2,41.1,38.1,26.6,27,28.9,19.5,30.1,36.7,41.4,42.7,42.5,46.7,36.5,39.5,15.4,19.1,22.2,9.3,10.3,36.5,16.4,0,14.3,38.3,21.7,10.7,39.9,7.4,18.5],
-    [33.7,28.9,20.3,28.8,25.6,14.2,15.7,19.2,12.8,16.5,24.6,29.8,29.6,30.6,34.2,23.8,26.2,11.2,10.9,8.8,11.8,9,30.5,12.7,14.3,0,24.7,12.4,12.2,36,15.5,14.6],
-    [28.2,27.6,27.4,19.9,14.5,15.5,18,22.4,27.8,11,14.5,20.9,11.5,20,23.2,9.4,7.1,29.7,26.5,17.2,33.9,31.4,39.4,27.9,38.3,24.7,0,23.6,35.3,45.4,40,27.6],
-    [38,34.3,27.7,31.7,28.1,18.1,20,25.5,22.5,16,27.2,32.9,30.8,33,36.6,24.3,25.5,21.6,20.2,11.9,20.9,18.5,33.3,21.7,21.7,12.4,23.6,0,16,38.4,22.2,23.3],
-    [44.3,39.2,30.2,40.2,37.1,25.5,27,30,21.8,27.3,35.3,40.4,40.9,41,44.5,33.6,36.2,18.4,20.2,19.8,13.8,12.4,29.3,19,10.7,12.2,35.3,16,0,33.1,10.2,20.7],
-    [62.9,59.5,54.1,55.9,51.8,43.9,46.4,51.5,47.7,42.4,49,53.3,52,50.8,52,42.6,45.1,45.8,45.4,38.4,43.2,41.2,11.2,44.7,39.9,36,45.4,38.4,33.1,0,38.3,44.6],
-    [46.3,40.9,31.2,43.3,40.4,28.4,29,30.3,21.6,31.6,39,43.9,44.7,44.7,48.9,38.1,40.9,17.2,19.7,23.9,10.9,10.7,35.2,19.6,7.4,15.5,40,22.2,10.2,38.3,0,21.8],
-    [30.8,26.3,19.9,27.5,25.1,17.1,18.9,22.6,18.1,20.6,22.4,26.2,29.4,28.2,31.4,24.9,28.2,18.1,19.2,15.8,18.3,17.2,39.8,9.7,18.5,14.6,27.6,23.3,20.7,44.6,21.8,0]
+    [
+        0,
+        17.9,
+        19.9,
+        14.6,
+        16.8,
+        22.5,
+        23.1,
+        22.9,
+        29,
+        26.8,
+        18.8,
+        21.5,
+        23.7,
+        24.5,
+        29.2,
+        26.3,
+        27.8,
+        32.9,
+        31.6,
+        28.4,
+        38.8,
+        37.7,
+        57.1,
+        29.6,
+        43.8,
+        33.7,
+        28.2,
+        38,
+        44.3,
+        62.9,
+        46.3,
+        30.8,
+    ],
+    [
+        17.9,
+        0,
+        16.1,
+        17.8,
+        18.2,
+        20,
+        20.5,
+        21.2,
+        24.5,
+        24.4,
+        19.8,
+        23.8,
+        24.6,
+        26,
+        30.8,
+        25.8,
+        27.6,
+        28,
+        27.3,
+        24.4,
+        33.4,
+        32.5,
+        53.9,
+        24.8,
+        38.2,
+        28.9,
+        27.6,
+        34.3,
+        39.2,
+        59.5,
+        40.9,
+        26.3,
+    ],
+    [
+        19.9,
+        16.1,
+        0,
+        20.8,
+        19,
+        14.9,
+        15.1,
+        14.6,
+        12.8,
+        20.9,
+        20.1,
+        25.2,
+        25.4,
+        26.9,
+        31.9,
+        25.5,
+        28,
+        16.8,
+        17.8,
+        17.4,
+        22.4,
+        22,
+        48.3,
+        16.3,
+        28.2,
+        20.3,
+        27.4,
+        27.7,
+        30.2,
+        54.1,
+        31.2,
+        19.9,
+    ],
+    [
+        14.6,
+        17.8,
+        20.8,
+        0,
+        8.1,
+        15.9,
+        17,
+        18.5,
+        26.9,
+        19.4,
+        10.6,
+        14.6,
+        15.1,
+        16.9,
+        22,
+        18.1,
+        19.3,
+        30.4,
+        27.4,
+        22.6,
+        36,
+        34.3,
+        50,
+        27.4,
+        41.1,
+        28.8,
+        19.9,
+        31.7,
+        40.2,
+        55.9,
+        43.3,
+        27.5,
+    ],
+    [
+        16.8,
+        18.2,
+        19,
+        8.1,
+        0,
+        12.4,
+        13.4,
+        15.6,
+        23.4,
+        15.4,
+        9.2,
+        15,
+        9.4,
+        16.3,
+        21.2,
+        13.8,
+        14.6,
+        26.8,
+        23.5,
+        18.9,
+        32.7,
+        31,
+        45.8,
+        24.7,
+        38.1,
+        25.6,
+        14.5,
+        28.1,
+        37.1,
+        51.8,
+        40.4,
+        25.1,
+    ],
+    [
+        22.5,
+        20,
+        14.9,
+        15.9,
+        12.4,
+        0,
+        6,
+        11.4,
+        13.7,
+        10,
+        13.2,
+        19.1,
+        16.6,
+        20,
+        23.9,
+        13.7,
+        16,
+        16.3,
+        13.1,
+        8.2,
+        21.6,
+        19.5,
+        37.9,
+        15.8,
+        26.6,
+        14.2,
+        15.5,
+        18.1,
+        25.5,
+        43.9,
+        28.4,
+        17.1,
+    ],
+    [
+        23.1,
+        20.5,
+        15.1,
+        17,
+        13.4,
+        6,
+        0,
+        9.9,
+        12.1,
+        12.1,
+        15.2,
+        21.3,
+        17.8,
+        22.1,
+        26.3,
+        16.4,
+        18.6,
+        14.8,
+        11.6,
+        9.9,
+        21.1,
+        19.2,
+        40.3,
+        17.1,
+        27,
+        15.7,
+        18,
+        20,
+        27,
+        46.4,
+        29,
+        18.9,
+    ],
+    [
+        22.9,
+        21.2,
+        14.6,
+        18.5,
+        15.6,
+        11.4,
+        9.9,
+        0,
+        13.1,
+        17.8,
+        18.6,
+        24.6,
+        20.4,
+        25.6,
+        30.5,
+        21.4,
+        23.3,
+        16.3,
+        14.1,
+        15.7,
+        22.5,
+        20.9,
+        45.8,
+        20.1,
+        28.9,
+        19.2,
+        22.4,
+        25.5,
+        30,
+        51.5,
+        30.3,
+        22.6,
+    ],
+    [
+        29,
+        24.5,
+        12.8,
+        26.9,
+        23.4,
+        13.7,
+        12.1,
+        13.1,
+        0,
+        19.7,
+        24.6,
+        30,
+        28.5,
+        31,
+        36,
+        26.6,
+        29.1,
+        7.4,
+        8.6,
+        13.2,
+        12.9,
+        12.2,
+        42.1,
+        14.4,
+        19.5,
+        12.8,
+        27.8,
+        22.5,
+        21.8,
+        47.7,
+        21.6,
+        18.1,
+    ],
+    [
+        26.8,
+        24.4,
+        20.9,
+        19.4,
+        15.4,
+        10,
+        12.1,
+        17.8,
+        19.7,
+        0,
+        14.5,
+        20.6,
+        17.1,
+        20.2,
+        24.1,
+        11.5,
+        12.4,
+        21.5,
+        18.7,
+        9.1,
+        25.7,
+        23.2,
+        36.4,
+        20.2,
+        30.1,
+        16.5,
+        11,
+        16,
+        27.3,
+        42.4,
+        31.6,
+        20.6,
+    ],
+    [
+        18.8,
+        19.8,
+        20.1,
+        10.6,
+        9.2,
+        13.2,
+        15.2,
+        18.6,
+        24.6,
+        14.5,
+        0,
+        9.5,
+        12.3,
+        9.8,
+        14.2,
+        11.2,
+        13.6,
+        27.6,
+        24.8,
+        18,
+        32.4,
+        30.5,
+        42.9,
+        23.5,
+        36.7,
+        24.6,
+        14.5,
+        27.2,
+        35.3,
+        49,
+        39,
+        22.4,
+    ],
+    [
+        21.5,
+        23.8,
+        25.2,
+        14.6,
+        15,
+        19.1,
+        21.3,
+        24.6,
+        30,
+        20.6,
+        9.5,
+        0,
+        18.9,
+        6.9,
+        10,
+        16,
+        19.5,
+        32.9,
+        30.6,
+        24,
+        37.6,
+        35.9,
+        47.9,
+        28,
+        41.4,
+        29.8,
+        20.9,
+        32.9,
+        40.4,
+        53.3,
+        43.9,
+        26.2,
+    ],
+    [
+        23.7,
+        24.6,
+        25.4,
+        15.1,
+        9.4,
+        16.6,
+        17.8,
+        20.4,
+        28.5,
+        17.1,
+        12.3,
+        18.9,
+        0,
+        18.3,
+        22,
+        11.1,
+        10.1,
+        31.9,
+        28.2,
+        22.7,
+        37.7,
+        35.7,
+        46.2,
+        29.8,
+        42.7,
+        29.6,
+        11.5,
+        30.8,
+        40.9,
+        52,
+        44.7,
+        29.4,
+    ],
+    [
+        24.5,
+        26,
+        26.9,
+        16.9,
+        16.3,
+        20,
+        22.1,
+        25.6,
+        31,
+        20.2,
+        9.8,
+        6.9,
+        18.3,
+        0,
+        6.3,
+        14.6,
+        18.2,
+        34,
+        31.4,
+        24.2,
+        38.8,
+        37,
+        45.4,
+        29.5,
+        42.5,
+        30.6,
+        20,
+        33,
+        41,
+        50.8,
+        44.7,
+        28.2,
+    ],
+    [
+        29.2,
+        30.8,
+        31.9,
+        22,
+        21.2,
+        23.9,
+        26.3,
+        30.5,
+        36,
+        24.1,
+        14.2,
+        10,
+        22,
+        6.3,
+        0,
+        17.4,
+        21.1,
+        38.7,
+        35.9,
+        28.3,
+        43.1,
+        41,
+        46.7,
+        33.7,
+        46.7,
+        34.2,
+        23.2,
+        36.6,
+        44.5,
+        52,
+        48.9,
+        31.4,
+    ],
+    [
+        26.3,
+        25.8,
+        25.5,
+        18.1,
+        13.8,
+        13.7,
+        16.4,
+        21.4,
+        26.6,
+        11.5,
+        11.2,
+        16,
+        11.1,
+        14.6,
+        17.4,
+        0,
+        7.4,
+        28.8,
+        25.7,
+        16.9,
+        33.1,
+        30.7,
+        36.8,
+        25.9,
+        36.5,
+        23.8,
+        9.4,
+        24.3,
+        33.6,
+        42.6,
+        38.1,
+        24.9,
+    ],
+    [
+        27.8,
+        27.6,
+        28,
+        19.3,
+        14.6,
+        16,
+        18.6,
+        23.3,
+        29.1,
+        12.4,
+        13.6,
+        19.5,
+        10.1,
+        18.2,
+        21.1,
+        7.4,
+        0,
+        31.2,
+        28,
+        18.7,
+        35.5,
+        33.1,
+        39,
+        28.9,
+        39.5,
+        26.2,
+        7.1,
+        25.5,
+        36.2,
+        45.1,
+        40.9,
+        28.2,
+    ],
+    [
+        32.9,
+        28,
+        16.8,
+        30.4,
+        26.8,
+        16.3,
+        14.8,
+        16.3,
+        7.4,
+        21.5,
+        27.6,
+        32.9,
+        31.9,
+        34,
+        38.7,
+        28.8,
+        31.2,
+        0,
+        8.3,
+        13.9,
+        9.3,
+        8.3,
+        40.5,
+        14.1,
+        15.4,
+        11.2,
+        29.7,
+        21.6,
+        18.4,
+        45.8,
+        17.2,
+        18.1,
+    ],
+    [
+        31.6,
+        27.3,
+        17.8,
+        27.4,
+        23.5,
+        13.1,
+        11.6,
+        14.1,
+        8.6,
+        18.7,
+        24.8,
+        30.6,
+        28.2,
+        31.4,
+        35.9,
+        25.7,
+        28,
+        8.3,
+        0,
+        12.1,
+        12.7,
+        10.4,
+        39.9,
+        15.8,
+        19.1,
+        10.9,
+        26.5,
+        20.2,
+        20.2,
+        45.4,
+        19.7,
+        19.2,
+    ],
+    [
+        28.4,
+        24.4,
+        17.4,
+        22.6,
+        18.9,
+        8.2,
+        9.9,
+        15.7,
+        13.2,
+        9.1,
+        18,
+        24,
+        22.7,
+        24.2,
+        28.3,
+        16.9,
+        18.7,
+        13.9,
+        12.1,
+        0,
+        17.7,
+        15.1,
+        32.4,
+        14.3,
+        22.2,
+        8.8,
+        17.2,
+        11.9,
+        19.8,
+        38.4,
+        23.9,
+        15.8,
+    ],
+    [
+        38.8,
+        33.4,
+        22.4,
+        36,
+        32.7,
+        21.6,
+        21.1,
+        22.5,
+        12.9,
+        25.7,
+        32.4,
+        37.6,
+        37.7,
+        38.8,
+        43.1,
+        33.1,
+        35.5,
+        9.3,
+        12.7,
+        17.7,
+        0,
+        6.4,
+        38.7,
+        14.6,
+        9.3,
+        11.8,
+        33.9,
+        20.9,
+        13.8,
+        43.2,
+        10.9,
+        18.3,
+    ],
+    [
+        37.7,
+        32.5,
+        22,
+        34.3,
+        31,
+        19.5,
+        19.2,
+        20.9,
+        12.2,
+        23.2,
+        30.5,
+        35.9,
+        35.7,
+        37,
+        41,
+        30.7,
+        33.1,
+        8.3,
+        10.4,
+        15.1,
+        6.4,
+        0,
+        36.5,
+        13.9,
+        10.3,
+        9,
+        31.4,
+        18.5,
+        12.4,
+        41.2,
+        10.7,
+        17.2,
+    ],
+    [
+        57.1,
+        53.9,
+        48.3,
+        50,
+        45.8,
+        37.9,
+        40.3,
+        45.8,
+        42.1,
+        36.4,
+        42.9,
+        47.9,
+        46.2,
+        45.4,
+        46.7,
+        36.8,
+        39,
+        40.5,
+        39.9,
+        32.4,
+        38.7,
+        36.5,
+        0,
+        39.9,
+        36.5,
+        30.5,
+        39.4,
+        33.3,
+        29.3,
+        11.2,
+        35.2,
+        39.8,
+    ],
+    [
+        29.6,
+        24.8,
+        16.3,
+        27.4,
+        24.7,
+        15.8,
+        17.1,
+        20.1,
+        14.4,
+        20.2,
+        23.5,
+        28,
+        29.8,
+        29.5,
+        33.7,
+        25.9,
+        28.9,
+        14.1,
+        15.8,
+        14.3,
+        14.6,
+        13.9,
+        39.9,
+        0,
+        16.4,
+        12.7,
+        27.9,
+        21.7,
+        19,
+        44.7,
+        19.6,
+        9.7,
+    ],
+    [
+        43.8,
+        38.2,
+        28.2,
+        41.1,
+        38.1,
+        26.6,
+        27,
+        28.9,
+        19.5,
+        30.1,
+        36.7,
+        41.4,
+        42.7,
+        42.5,
+        46.7,
+        36.5,
+        39.5,
+        15.4,
+        19.1,
+        22.2,
+        9.3,
+        10.3,
+        36.5,
+        16.4,
+        0,
+        14.3,
+        38.3,
+        21.7,
+        10.7,
+        39.9,
+        7.4,
+        18.5,
+    ],
+    [
+        33.7,
+        28.9,
+        20.3,
+        28.8,
+        25.6,
+        14.2,
+        15.7,
+        19.2,
+        12.8,
+        16.5,
+        24.6,
+        29.8,
+        29.6,
+        30.6,
+        34.2,
+        23.8,
+        26.2,
+        11.2,
+        10.9,
+        8.8,
+        11.8,
+        9,
+        30.5,
+        12.7,
+        14.3,
+        0,
+        24.7,
+        12.4,
+        12.2,
+        36,
+        15.5,
+        14.6,
+    ],
+    [
+        28.2,
+        27.6,
+        27.4,
+        19.9,
+        14.5,
+        15.5,
+        18,
+        22.4,
+        27.8,
+        11,
+        14.5,
+        20.9,
+        11.5,
+        20,
+        23.2,
+        9.4,
+        7.1,
+        29.7,
+        26.5,
+        17.2,
+        33.9,
+        31.4,
+        39.4,
+        27.9,
+        38.3,
+        24.7,
+        0,
+        23.6,
+        35.3,
+        45.4,
+        40,
+        27.6,
+    ],
+    [
+        38,
+        34.3,
+        27.7,
+        31.7,
+        28.1,
+        18.1,
+        20,
+        25.5,
+        22.5,
+        16,
+        27.2,
+        32.9,
+        30.8,
+        33,
+        36.6,
+        24.3,
+        25.5,
+        21.6,
+        20.2,
+        11.9,
+        20.9,
+        18.5,
+        33.3,
+        21.7,
+        21.7,
+        12.4,
+        23.6,
+        0,
+        16,
+        38.4,
+        22.2,
+        23.3,
+    ],
+    [
+        44.3,
+        39.2,
+        30.2,
+        40.2,
+        37.1,
+        25.5,
+        27,
+        30,
+        21.8,
+        27.3,
+        35.3,
+        40.4,
+        40.9,
+        41,
+        44.5,
+        33.6,
+        36.2,
+        18.4,
+        20.2,
+        19.8,
+        13.8,
+        12.4,
+        29.3,
+        19,
+        10.7,
+        12.2,
+        35.3,
+        16,
+        0,
+        33.1,
+        10.2,
+        20.7,
+    ],
+    [
+        62.9,
+        59.5,
+        54.1,
+        55.9,
+        51.8,
+        43.9,
+        46.4,
+        51.5,
+        47.7,
+        42.4,
+        49,
+        53.3,
+        52,
+        50.8,
+        52,
+        42.6,
+        45.1,
+        45.8,
+        45.4,
+        38.4,
+        43.2,
+        41.2,
+        11.2,
+        44.7,
+        39.9,
+        36,
+        45.4,
+        38.4,
+        33.1,
+        0,
+        38.3,
+        44.6,
+    ],
+    [
+        46.3,
+        40.9,
+        31.2,
+        43.3,
+        40.4,
+        28.4,
+        29,
+        30.3,
+        21.6,
+        31.6,
+        39,
+        43.9,
+        44.7,
+        44.7,
+        48.9,
+        38.1,
+        40.9,
+        17.2,
+        19.7,
+        23.9,
+        10.9,
+        10.7,
+        35.2,
+        19.6,
+        7.4,
+        15.5,
+        40,
+        22.2,
+        10.2,
+        38.3,
+        0,
+        21.8,
+    ],
+    [
+        30.8,
+        26.3,
+        19.9,
+        27.5,
+        25.1,
+        17.1,
+        18.9,
+        22.6,
+        18.1,
+        20.6,
+        22.4,
+        26.2,
+        29.4,
+        28.2,
+        31.4,
+        24.9,
+        28.2,
+        18.1,
+        19.2,
+        15.8,
+        18.3,
+        17.2,
+        39.8,
+        9.7,
+        18.5,
+        14.6,
+        27.6,
+        23.3,
+        20.7,
+        44.6,
+        21.8,
+        0,
+    ],
 ]
 
 """
@@ -363,8 +1546,9 @@ G. N. Elston, “Cortical heterogeneity: Implications for visual processing and 
 J. Neurocytol., vol. 31, no. 3–5 SPEC. ISS., pp. 317–335, 2002.
 """
 
+
 def data_folder():
-    return os.path.dirname(inspect.stack()[0][1]) + '/data_files'
+    return os.path.dirname(inspect.stack()[0][1]) + "/data_files"
 
 
 # Histograms of synpapses per functional connection in rat barrel cortex. We average over three
@@ -381,47 +1565,39 @@ def data_folder():
 # D. L. Sussman, C. E. Priebe, H. Pfister, and J. W. Lichtman, “Saturated Reconstruction
 # of a Volume of Neocortex,” Cell, vol. 162, no. 3, pp. 648–661, 2015.
 FS09_synapses_per_connection = [
-    [4, 0.5385996409335727], # L4->L2/3
+    [4, 0.5385996409335727],  # L4->L2/3
     [5, 0.4631956912028726],
-    [4, 0.10626118067978559], # L5->L5
+    [4, 0.10626118067978559],  # L5->L5
     [5, 0.4754919499105546],
     [6, 0.21037567084078707],
     [7, 0.15885509838998244],
     [8, 0.05259391771019685],
-    [2, 0.18107142857142855], # L4->L4
+    [2, 0.18107142857142855],  # L4->L4
     [3, 0.4553571428571429],
     [4, 0.18214285714285722],
-    [5, 0.18214285714285705]
+    [5, 0.18214285714285705],
 ]
 
 
 # Sincich, L. C., Adams, D. L., & Horton, J. C. (2003). Complete flatmounting of the macaque cerebral
 # cortex. Visual neuroscience, 20(6), 663-686.
 # (These all vary within a factor of two, but surface area of V1 & V2 well correlated with total; Fig 7)
-SAH_area = {
-    'V1': 1343,
-    'V2': 1012,
-    'MT': 73,
-    'A1': 88,
-    'S1': 284,
-    'Hippocampus': 181,
-    'Neocortex': 10430
-}
+SAH_area = {"V1": 1343, "V2": 1012, "MT": 73, "A1": 88, "S1": 284, "Hippocampus": 181, "Neocortex": 10430}
 
 
 # Garcia-Marin, V., Kelly, J. G., & Hawken, M. J. (2017). Major feedforward thalamic input into layer
 # 4C of primary visual cortex in primate. Cerebral Cortex, 1-16.
 GMKH17_density_per_mm2_V1 = {
-    '1': 2500,
-    '2/3': 143000,
-    '4A': 12800,
-    '4B': 36000,
-    '4Calpha': 35900,
-    '4Cbeta': 56500,
-    '4': 12800 + 36000 + 35900 + 56500,
-    '5': 36200,
-    '6': 55500,
-    '1-6': 378300
+    "1": 2500,
+    "2/3": 143000,
+    "4A": 12800,
+    "4B": 36000,
+    "4Calpha": 35900,
+    "4Cbeta": 56500,
+    "4": 12800 + 36000 + 35900 + 56500,
+    "5": 36200,
+    "6": 55500,
+    "1-6": 378300,
 }
 
 
@@ -429,16 +1605,40 @@ GMKH17_density_per_mm2_V1 = {
 # processing in the primate cerebral cortex. Cerebral cortex (New York, NY: 1991), 1(1),
 # 1-47.
 FV91_hierarchy = {
-    'V1': 1,
-    'V2': 2,
-    'V3': 3, 'VP': 3,
-    'PIP': 4, 'V3A': 4,
-    'MDP': 5, 'MIP': 5, 'PO': 5, 'MT': 5, 'V4t': 5, 'V4': 5,
-    'DP': 6, 'VOT': 6,
-    'VIP': 7, 'LIP': 7, 'MSTd': 7, 'MSTl': 7, 'FST': 7, 'PITd': 7, 'PITv': 7,
-    '7b': 8, '7a': 8, 'FEF': 8, 'STPp': 8, 'CITd': 8, 'CITv': 8,
-    'STPa': 9, 'AITd': 9, 'AITv': 9,
-    '36': 10, '46': 10, 'TF': 10, 'TH': 10
+    "V1": 1,
+    "V2": 2,
+    "V3": 3,
+    "VP": 3,
+    "PIP": 4,
+    "V3A": 4,
+    "MDP": 5,
+    "MIP": 5,
+    "PO": 5,
+    "MT": 5,
+    "V4t": 5,
+    "V4": 5,
+    "DP": 6,
+    "VOT": 6,
+    "VIP": 7,
+    "LIP": 7,
+    "MSTd": 7,
+    "MSTl": 7,
+    "FST": 7,
+    "PITd": 7,
+    "PITv": 7,
+    "7b": 8,
+    "7a": 8,
+    "FEF": 8,
+    "STPp": 8,
+    "CITd": 8,
+    "CITv": 8,
+    "STPa": 9,
+    "AITd": 9,
+    "AITv": 9,
+    "36": 10,
+    "46": 10,
+    "TF": 10,
+    "TH": 10,
 }
 
 
@@ -447,42 +1647,43 @@ class E07:
     Data on spine counts from G. N. Elston, “Specialization of the Neocortical Pyramidal
     Cell during Primate Evolution,” Evol. Nerv. Syst., pp. 191–242, 2007.
     """
+
     def __init__(self):
 
         # From figures 8 and 11
         self.layer_3_basal_spine_count = {
-            'V1': 812,
-            'V2': 1326,
-            'V4': 2588,
-            'TEO': 5023,
-            'TE': 7385,
-            '3b': 3062,
-            '4': 4598,
-            '5': 4735,
-            '6': 8318,
-            '7': 6892
+            "V1": 812,
+            "V2": 1326,
+            "V4": 2588,
+            "TEO": 5023,
+            "TE": 7385,
+            "3b": 3062,
+            "4": 4598,
+            "5": 4735,
+            "6": 8318,
+            "7": 6892,
         }
 
         # Mappings from area names used in Elston to corresponding areas in Yerkes atlas
         self.yerkes_mappings = {
-            'TE': ['TEad', 'TEa/ma', 'TEa/mp', 'TEav', 'TEpd', 'TEpv'],
-            '7': ['7A', '7B', '7m', '7op'],
-            '3b': ['3'],
-            '4': ['F1'],
-            '6': ['F3', 'F6']  # see Luppino & Rizzolati (2000)
+            "TE": ["TEad", "TEa/ma", "TEa/mp", "TEav", "TEpd", "TEpv"],
+            "7": ["7A", "7B", "7m", "7op"],
+            "3b": ["3"],
+            "4": ["F1"],
+            "6": ["F3", "F6"],  # see Luppino & Rizzolati (2000)
         }
 
         self.FV91_mappings = {
-            'TE': ['PITd', 'PITv', 'CITd', 'CITv', 'AITd', 'AITv'],
-            'TEO': ['VOT'],
-            '7': ['7a'],
-            '3b': [],
-            '4': [],
-            '5': [],
-            '6': []
+            "TE": ["PITd", "PITv", "CITd", "CITv", "AITd", "AITv"],
+            "TEO": ["VOT"],
+            "7": ["7a"],
+            "3b": [],
+            "4": [],
+            "5": [],
+            "6": [],
         }
 
-        self._V1_ind = areas_FV91.index('V1')
+        self._V1_ind = areas_FV91.index("V1")
         self._fit()
 
     def _fit(self):
@@ -549,13 +1750,13 @@ class E07:
                 interpolated_spine_counts.append(self.get_spine_count(area))
 
         plt.figure(figsize=(3.5, 2.5))
-        plt.plot(measured_distances, measured_spine_counts, 'bo')
-        plt.plot(interpolated_distances, interpolated_spine_counts, 'k.')
-        plt.plot([0, 65], self.intercept + [0, self.slope*65], 'k')
-        plt.xlabel('Distance from V1')
-        plt.ylabel('Basal spine count')
+        plt.plot(measured_distances, measured_spine_counts, "bo")
+        plt.plot(interpolated_distances, interpolated_spine_counts, "k.")
+        plt.plot([0, 65], self.intercept + [0, self.slope * 65], "k")
+        plt.xlabel("Distance from V1")
+        plt.ylabel("Basal spine count")
         plt.tight_layout()
-        plt.savefig('../generated-files/figures/spine-count.eps')
+        plt.savefig("../generated-files/figures/spine-count.eps")
         plt.show()
 
 
@@ -572,13 +1773,13 @@ class SchmidtData:
     """
 
     def __init__(self):
-        with open('./data_files/schmidt/default_Data_Model_.json') as file:
+        with open("./data_files/schmidt/default_Data_Model_.json") as file:
             self.data = json.load(file)
 
     def neuron_numbers(self, area, layer):
-        numbers = self.data['realistic_neuron_numbers']
+        numbers = self.data["realistic_neuron_numbers"]
 
-        if area == 'TH' and layer == '4':
+        if area == "TH" and layer == "4":
             # Schmidt et al. (2018) say that TH lacks L4 but don't give a reference. However
             # Felleman & Van Essen (1991) say that several connections to TH terminate on L4
             # (F pattern in their Table 5).
@@ -587,7 +1788,7 @@ class SchmidtData:
             TF_volume = 197.40 * 0.21
             TH_volume = 44.60 * 0.12
 
-            TF_density = numbers['TF'][self._adapt_layer_name('4')] / TF_volume
+            TF_density = numbers["TF"][self._adapt_layer_name("4")] / TF_volume
             return TF_density * TH_volume
         else:
             return numbers[area][self._adapt_layer_name(layer)]
@@ -598,8 +1799,8 @@ class SchmidtData:
         :param target_layer: name of layer that contains cell bodies of target cells
         :return: estimate of mean # excitatory synapses per neuron from other cortical areas
         """
-        if area == 'TH' and target_layer == '4': # missing data for TH; use neighbour
-            area = 'TF'
+        if area == "TH" and target_layer == "4":  # missing data for TH; use neighbour
+            area = "TF"
 
         return self._synapses_per_neuron(area, target_layer, include_interlaminar=False)[0]
 
@@ -611,16 +1812,16 @@ class SchmidtData:
         :return: estimate of mean # excitatory synapses per neuron from within same cortical area
             and given source layer
         """
-        if area == 'TH' and (source_layer == '4' or target_layer == '4'): # missing data for TH; use neighbour
-            area = 'TF'
+        if area == "TH" and (source_layer == "4" or target_layer == "4"):  # missing data for TH; use neighbour
+            area = "TF"
 
         patch_factor = self._get_patch_factor(area, target_layer)
 
         source_layer = self._adapt_layer_name(source_layer)
         target_layer = self._adapt_layer_name(target_layer)
 
-        synapses = self.data['synapses'][area][target_layer][area][source_layer]
-        neuron_number = self.data['neuron_numbers'][area][target_layer]
+        synapses = self.data["synapses"][area][target_layer][area][source_layer]
+        neuron_number = self.data["neuron_numbers"][area][target_layer]
 
         return synapses / neuron_number * patch_factor
 
@@ -635,52 +1836,50 @@ class SchmidtData:
         """
         excitatory, inhibitory = self._synapses_per_neuron(area, target_layer, include_interarea=False)
 
-        excitatory_fraction = excitatory / (excitatory+inhibitory)
+        excitatory_fraction = excitatory / (excitatory + inhibitory)
         external = self._synapses_per_neuron_external(area, target_layer)
-        excitatory_full = excitatory + excitatory_fraction*external
+        excitatory_full = excitatory + excitatory_fraction * external
 
         return excitatory_full / excitatory
 
     def _synapses_per_neuron(self, area, target_layer, include_interlaminar=True, include_interarea=True):
-        target = self.data['synapses'][area][self._adapt_layer_name(target_layer)]
+        target = self.data["synapses"][area][self._adapt_layer_name(target_layer)]
 
         excitatory = 0
         inhibitory = 0
         for source_area in target.keys():
-            interlaminar = (source_area == area)
+            interlaminar = source_area == area
             if (interlaminar and include_interlaminar) or (not interlaminar and include_interarea):
                 for source_layer in target[source_area].keys():
                     n = target[source_area][source_layer]
-                    if source_layer in ['23E', '4E', '5E', '6E']:
+                    if source_layer in ["23E", "4E", "5E", "6E"]:
                         excitatory += n
-                    elif source_layer in ['23I', '4I', '5I', '6I']:
+                    elif source_layer in ["23I", "4I", "5I", "6I"]:
                         inhibitory += n
 
         n = self._num_neurons_per_mm2(area, target_layer)
 
-        return excitatory/n, inhibitory/n
+        return excitatory / n, inhibitory / n
 
     def _adapt_layer_name(self, layer):
-        return '{}E'.format(layer.replace('/', ''))
+        return "{}E".format(layer.replace("/", ""))
 
     def _num_neurons_per_mm2(self, area, layer):
         # return self.data['neuron_numbers'][area][self._adapt_layer_name(target_layer)]
-        numbers = self.data['neuron_numbers']
+        numbers = self.data["neuron_numbers"]
 
-        if area == 'TH' and layer == '4':
+        if area == "TH" and layer == "4":
             TF_volume = 197.40 * 0.21
             TH_volume = 44.60 * 0.12
 
-            TF_density = numbers['TF'][self._adapt_layer_name('4')] / TF_volume
+            TF_density = numbers["TF"][self._adapt_layer_name("4")] / TF_volume
             return TF_density * TH_volume
         else:
             return numbers[area][self._adapt_layer_name(layer)]
 
-
     def _synapses_per_neuron_external(self, area, target_layer):
-        target = self.data['synapses'][area][self._adapt_layer_name(target_layer)]
-        return target['external']['external'] / self._num_neurons_per_mm2(area, target_layer)
-
+        target = self.data["synapses"][area][self._adapt_layer_name(target_layer)]
+        return target["external"]["external"] / self._num_neurons_per_mm2(area, target_layer)
 
 
 """
@@ -704,18 +1903,18 @@ Op De Beeck, H., & Vogels, R. (2000). Spatial sensitivity of macaque inferior te
 Journal of Comparative Neurology, 426(4), 505-518.
 """
 RF_diameter_5_degrees_eccentricity = {
-    'V1': 1.3, # Gattass et al. (1981)
-    'V2': 2.2, # Gattass et al. (1981)
-    'V3': 2.8, # mean of Gattass et al. (1988) and Felleman & Van Essen (1987)
-    'V4': 4.8, # mean of Gattass et al. (1988) and Boussaoud et al. (1991)
-    'MT': 4.2, # mean of Komatsu et al. (1988) and Maunsell et al. (1987)
-    'PO': 7.7, # Galletti et al. (1999)
-    'MSTd': 16.0, # Komatsu et al. (1988)
-    'AIP': None, # but see Romero & Janssen (2016)
-    'PITd': 8.9, # Boussaoud et al. (1991)
-    'PITv': 8.9, # Boussaoud et al. (1991)
-    'CITd': 38.5, # for TE generally in 0-10deg range, from Boussaoud et al. (1991), but sites look fairly caudal (Fig 4)
-    'CITv': 38.5
+    "V1": 1.3,  # Gattass et al. (1981)
+    "V2": 2.2,  # Gattass et al. (1981)
+    "V3": 2.8,  # mean of Gattass et al. (1988) and Felleman & Van Essen (1987)
+    "V4": 4.8,  # mean of Gattass et al. (1988) and Boussaoud et al. (1991)
+    "MT": 4.2,  # mean of Komatsu et al. (1988) and Maunsell et al. (1987)
+    "PO": 7.7,  # Galletti et al. (1999)
+    "MSTd": 16.0,  # Komatsu et al. (1988)
+    "AIP": None,  # but see Romero & Janssen (2016)
+    "PITd": 8.9,  # Boussaoud et al. (1991)
+    "PITv": 8.9,  # Boussaoud et al. (1991)
+    "CITd": 38.5,  # for TE generally in 0-10deg range, from Boussaoud et al. (1991), but sites look fairly caudal (Fig 4)
+    "CITv": 38.5,
 }
 
 
@@ -734,12 +1933,13 @@ class CoCoMac:
     Includes categorical connection strength codes, by source and target layer, where
     available.
     """
+
     def __init__(self):
         folder = data_folder()
-        with open(folder + '/cocomac/connectivity_matrix_layers.json') as file:
+        with open(folder + "/cocomac/connectivity_matrix_layers.json") as file:
             self.layers = json.load(file)
 
-        with open(folder + '/cocomac/connectivity_matrix_densities.json') as file:
+        with open(folder + "/cocomac/connectivity_matrix_densities.json") as file:
             self.densities = json.load(file)
 
     def get_source_areas(self, target_area):
@@ -749,7 +1949,7 @@ class CoCoMac:
         for key in self.densities.keys():
             targets = self.densities[key]
             # print(targets)
-            target_name = 'FV91-{}'.format(target_area)
+            target_name = "FV91-{}".format(target_area)
             if target_name in targets and targets[target_name] != 0:
                 source_area = key[5:]
                 # print('adding {} density {}'.format(source_area, targets[target_name]))
@@ -771,7 +1971,7 @@ class CoCoMac:
             exists between given areas in CoCoMac, None is returned.
         """
         try:
-            layers = self.layers['FV91-{}'.format(source_area)]['FV91-{}'.format(target_area)]
+            layers = self.layers["FV91-{}".format(source_area)]["FV91-{}".format(target_area)]
         except KeyError as e:
             return None
 
@@ -782,38 +1982,38 @@ class CoCoMac:
                 layers = CoCoMac._guess_missing_layers(source_area, target_area, layers)
 
             if guess_x:
-                layers[0] = layers[0].replace('X', '2')
-                layers[1] = layers[1].replace('X', '2')
+                layers[0] = layers[0].replace("X", "2")
+                layers[1] = layers[1].replace("X", "2")
 
-            return {'source_layers': layers[0], 'target_layers': layers[1]}
+            return {"source_layers": layers[0], "target_layers": layers[1]}
 
     @staticmethod
     def _guess_missing_layers(source_area, target_area, layers):
         if layers[0] is None:
-            layers[0] = '??????'
+            layers[0] = "??????"
         if layers[1] is None:
-            layers[1] = '??????'
+            layers[1] = "??????"
 
         source_level = FV91_hierarchy[source_area]
         target_level = FV91_hierarchy[target_area]
 
         # lacking data we will guess bilaminar-origin patterns from FV91 Figure 3
         if source_level < target_level:
-            guess = ['0XX0XX', '000X00']
+            guess = ["0XX0XX", "000X00"]
         elif source_level > target_level:
-            guess = ['0XX0XX', 'X0000X']
+            guess = ["0XX0XX", "X0000X"]
         else:
-            guess = ['0XX0XX', 'XXXXXX']
+            guess = ["0XX0XX", "XXXXXX"]
 
         layers[0] = list(layers[0])
         layers[1] = list(layers[1])
         for i in range(6):
-            if layers[0][i] == '?':
+            if layers[0][i] == "?":
                 layers[0][i] = guess[0][i]
-            if layers[1][i] == '?':
+            if layers[1][i] == "?":
                 layers[1][i] = guess[1][i]
-        layers[0] = ''.join(layers[0])
-        layers[1] = ''.join(layers[1])
+        layers[0] = "".join(layers[0])
+        layers[1] = "".join(layers[1])
 
         return layers
 
@@ -822,6 +2022,7 @@ class Markov:
     """
     Data from Markov et al. (2014) Journal of Comparative Neurology and Markov et al. (2014) Cerebral Cortex.
     """
+
     # TODO: docs, explain averaging over hemispheres
 
     def __init__(self):
@@ -866,7 +2067,7 @@ def _read_fraction_labelled_neurons_extrinsic():
     targets = []
     fractions = []
 
-    with open(data_folder() + '/markov/Cercor_2012 Table.csv') as csvfile:
+    with open(data_folder() + "/markov/Cercor_2012 Table.csv") as csvfile:
         r = csv.reader(csvfile)
         header_line = True
         for row in r:
@@ -887,13 +2088,13 @@ def _read_supragranular_layers_percent():
     percents = []
     distances = []
 
-    with open(data_folder() + '/markov/JCN_2013 Table.csv') as csvfile:
+    with open(data_folder() + "/markov/JCN_2013 Table.csv") as csvfile:
         r = csv.reader(csvfile)
         header_line = True
         for row in r:
             if header_line:
                 header_line = False
-            elif row[2] != 'NA' and len(row[2]) > 0:
+            elif row[2] != "NA" and len(row[2]) > 0:
                 sources.append(row[1])
                 targets.append(row[0])
                 percents.append(float(row[2]))
@@ -915,11 +2116,11 @@ def get_layers(area):
     # Felleman & Van Essen (1991) say that several connections to TH terminate on L4
     # (F pattern in their Table 5).
 
-    if area == 'V1':
+    if area == "V1":
         # return ['1', '2/3', '3B', '4A', '4B', '4Calpha', '4Cbeta', '5', '6']
-        return ['1', '2/3', '4A', '4B', '4Calpha', '4Cbeta', '5', '6']
+        return ["1", "2/3", "4A", "4B", "4Calpha", "4Cbeta", "5", "6"]
     else:
-        return ['1', '2/3', '4', '5', '6']
+        return ["1", "2/3", "4", "5", "6"]
 
 
 def markov_FLNe_sums():
@@ -927,7 +2128,45 @@ def markov_FLNe_sums():
     Prints information about total FLNe to visual areas from other visual areas, from
     Markov data.
     """
-    visual_areas = ['7A', '7B', '7m', '7op', 'AIP', 'DP', 'FST', 'IPa', 'LIP', 'MIP', 'MST', 'MT', 'PGa', 'PIP', 'Pro.St', 'STPc', 'STPi', 'STPr', 'TEad', 'TEa/ma', 'TEa/mp', 'TEav', 'TEO', 'TEOm', 'TEpd', 'TEpv', 'TH/TF', 'TPt', 'V1', 'V2', 'V3', 'V3A', 'V4', 'V4t', 'V6', 'V6A', 'VIP']
+    visual_areas = [
+        "7A",
+        "7B",
+        "7m",
+        "7op",
+        "AIP",
+        "DP",
+        "FST",
+        "IPa",
+        "LIP",
+        "MIP",
+        "MST",
+        "MT",
+        "PGa",
+        "PIP",
+        "Pro.St",
+        "STPc",
+        "STPi",
+        "STPr",
+        "TEad",
+        "TEa/ma",
+        "TEa/mp",
+        "TEav",
+        "TEO",
+        "TEOm",
+        "TEpd",
+        "TEpv",
+        "TH/TF",
+        "TPt",
+        "V1",
+        "V2",
+        "V3",
+        "V3A",
+        "V4",
+        "V4t",
+        "V6",
+        "V6A",
+        "VIP",
+    ]
 
     markov = Markov()
     totals = []
@@ -939,14 +2178,14 @@ def markov_FLNe_sums():
                 if FLNe is not None and source in visual_areas:
                     total += FLNe
             totals.append(total)
-            if total < .7:
+            if total < 0.7:
                 print(target)
     print(np.mean(totals))
     print(np.std(totals))
     print(np.min(totals))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cocomac = CoCoMac()
     # print(cocomac.layers.keys())
     # print(cocomac.layers['FV91-VP'].keys())
@@ -954,7 +2193,7 @@ if __name__ == '__main__':
     for source_area in areas_FV91:
         for target_area in areas_FV91:
             details = cocomac.get_connection_details(source_area, target_area, guess_missing=True, guess_x=True)
-            print('{}->{} {}'.format(source_area, target_area, details))
+            print("{}->{} {}".format(source_area, target_area, details))
 
     # markov_FLNe_sums()
 
@@ -1007,7 +2246,6 @@ if __name__ == '__main__':
     # print(np.corrcoef(sum1, sum2))
     # plt.scatter(sum1, sum2)
     # plt.show()
-
 
     # #TODO: move to unit test
     # for area in areas_FV91:
@@ -1089,8 +2327,6 @@ if __name__ == '__main__':
     # #
     # # plt.scatter(FLNe.flatten(), FLNe2.flatten())
     # # plt.show()
-
-
 
     # iac = InterAreaConnections()
     # plt.imshow(iac.get_connectivity_grid())

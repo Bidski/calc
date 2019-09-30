@@ -77,9 +77,7 @@ def get_collapsed_stride_pattern(system, max_cumulative_stride=512, best_of=10):
         collapsed_termination = _get_collapsed_population(termination, collapsed)
 
         assert collapsed_origin is not None, "No collapse found for {}".format(origin)
-        assert collapsed_termination is not None, "No collapse found for {}".format(
-            termination
-        )
+        assert collapsed_termination is not None, "No collapse found for {}".format(termination)
 
         ind = collapsed.find_projection_index(collapsed_origin, collapsed_termination)
         candidate.strides[i] = collapsed_candidate.strides[ind]
@@ -116,9 +114,7 @@ class StridePattern:
         self.cumulatives = [None] * len(self.system.populations)
         self.cumulative_hints = [None] * len(self.system.populations)
         self.min_cumulatives = [1] * len(self.system.populations)
-        self.max_cumulatives = [self.max_cumulative_stride] * len(
-            self.system.populations
-        )
+        self.max_cumulatives = [self.max_cumulative_stride] * len(self.system.populations)
         input_index = self.system.find_population_index(self.system.input_name)
         self.cumulatives[input_index] = 1
         self.set_hints()
@@ -193,18 +189,14 @@ class StridePattern:
             for ancestor in ancestors:
                 ancestor_index = self.system.find_population_index(ancestor)
                 if self.cumulatives[ancestor_index] is not None:
-                    self.min_cumulatives[i] = max(
-                        self.min_cumulatives[i], self.cumulatives[ancestor_index]
-                    )
+                    self.min_cumulatives[i] = max(self.min_cumulatives[i], self.cumulatives[ancestor_index])
 
             # cumulative stride can't be greater than that of descendants
             descendants = nx.descendants(graph, pop.name)
             for descendant in descendants:
                 descendant_index = self.system.find_population_index(descendant)
                 if self.cumulatives[descendant_index] is not None:
-                    self.max_cumulatives[i] = min(
-                        self.max_cumulatives[i], self.cumulatives[descendant_index]
-                    )
+                    self.max_cumulatives[i] = min(self.max_cumulatives[i], self.cumulatives[descendant_index])
 
     def fill(self):
         """
@@ -221,25 +213,15 @@ class StridePattern:
             start_cumulative = self.cumulatives[start_index]
             end_cumulative = self.cumulatives[end_index]
 
-            low_cumulative = (
-                start_cumulative
-                if start_cumulative
-                else self.min_cumulatives[start_index]
-            )
-            high_cumulative = (
-                end_cumulative if end_cumulative else self.max_cumulatives[end_index]
-            )
+            low_cumulative = start_cumulative if start_cumulative else self.min_cumulatives[start_index]
+            high_cumulative = end_cumulative if end_cumulative else self.max_cumulatives[end_index]
 
             steps = len(path) - 1
-            max_stride = StridePattern._get_max_stride(
-                high_cumulative / low_cumulative, steps
-            )
+            max_stride = StridePattern._get_max_stride(high_cumulative / low_cumulative, steps)
 
             # print('start c: {} end c: {} max c: {} max stride: {} len: {}'.format(
             #     start_cumulative, end_cumulative, self.max_cumulative_stride, max_stride, len(path)-1))
-            success = self.init_path(
-                path, exact_cumulative=end_cumulative, max_stride=max_stride
-            )
+            success = self.init_path(path, exact_cumulative=end_cumulative, max_stride=max_stride)
 
             if not success:
                 print("Resetting all strides")
@@ -267,14 +249,7 @@ class StridePattern:
 
         return nx.algorithms.dag.dag_longest_path(graph)
 
-    def init_path(
-        self,
-        path,
-        exact_cumulative=None,
-        min_stride=1,
-        max_stride=3,
-        max_attempts=10000,
-    ):
+    def init_path(self, path, exact_cumulative=None, min_stride=1, max_stride=3, max_attempts=10000):
         """
         Sets strides along the path to integer values between min_stride and
         max_stride. Strides are sampled at random, and rejected if the
@@ -304,16 +279,8 @@ class StridePattern:
                 post_ind = self.system.find_population_index(path[i + 1])
 
                 if self.cumulatives[post_ind] and temp_cumulatives[pre_ind]:
-                    temp_strides[projection_ind] = (
-                        self.cumulatives[post_ind] / temp_cumulatives[pre_ind]
-                    )
-                    if (
-                        abs(
-                            temp_strides[projection_ind]
-                            - round(temp_strides[projection_ind])
-                        )
-                        > 1e-3
-                    ):
+                    temp_strides[projection_ind] = self.cumulatives[post_ind] / temp_cumulatives[pre_ind]
+                    if abs(temp_strides[projection_ind] - round(temp_strides[projection_ind])) > 1e-3:
                         # this can happen e.g. if pre is 2 and post is 3 (have to start over then)
                         failed = True
                         break
@@ -322,24 +289,18 @@ class StridePattern:
 
                 else:
                     max_for_this_stride = min(
-                        max_stride,
-                        int(self.max_cumulatives[post_ind] / temp_cumulatives[pre_ind]),
+                        max_stride, int(self.max_cumulatives[post_ind] / temp_cumulatives[pre_ind])
                     )
                     min_for_this_stride = max(
-                        min_stride,
-                        int(self.min_cumulatives[post_ind] / temp_cumulatives[pre_ind]),
+                        min_stride, int(self.min_cumulatives[post_ind] / temp_cumulatives[pre_ind])
                     )
 
                     if max_for_this_stride < min_for_this_stride:
                         failed = True
                         break
 
-                    temp_strides[projection_ind] = self._sample_stride(
-                        min_for_this_stride, max_for_this_stride
-                    )
-                    temp_cumulatives[post_ind] = (
-                        temp_cumulatives[pre_ind] * temp_strides[projection_ind]
-                    )
+                    temp_strides[projection_ind] = self._sample_stride(min_for_this_stride, max_for_this_stride)
+                    temp_cumulatives[post_ind] = temp_cumulatives[pre_ind] * temp_strides[projection_ind]
 
                     if (
                         temp_cumulatives[post_ind] > self.max_cumulatives[post_ind]
@@ -350,9 +311,7 @@ class StridePattern:
                         break
 
             if not failed:
-                end_cumulative = temp_cumulatives[
-                    self.system.find_population_index(path[-1])
-                ]
+                end_cumulative = temp_cumulatives[self.system.find_population_index(path[-1])]
                 if exact_cumulative is None or exact_cumulative == end_cumulative:
                     self.strides = temp_strides
                     self.cumulatives = temp_cumulatives
@@ -372,9 +331,7 @@ class StridePattern:
     def _sample_stride(self, min_stride, max_stride, stride_hint=1.25):
         possible_strides = range(min_stride, max_stride + 1)
 
-        relative_probabilities = [
-            1 / (0.1 + np.abs(stride - stride_hint)) ** 2 for stride in possible_strides
-        ]
+        relative_probabilities = [1 / (0.1 + np.abs(stride - stride_hint)) ** 2 for stride in possible_strides]
         probabilities = relative_probabilities / np.sum(relative_probabilities)
         result = np.random.choice(possible_strides, p=probabilities)
 
@@ -393,13 +350,9 @@ def initialize_network(system, candidate, image_layer=0, image_channels=3.0):
     """
     net = network.Network()
 
-    approx_image_resolution = np.sqrt(
-        system.populations[image_layer].n / image_channels
-    )
+    approx_image_resolution = np.sqrt(system.populations[image_layer].n / image_channels)
     max_cumulative_stride = np.max(candidate.cumulatives)
-    image_resolution = (
-        round(approx_image_resolution / max_cumulative_stride) * max_cumulative_stride
-    )
+    image_resolution = round(approx_image_resolution / max_cumulative_stride) * max_cumulative_stride
 
     for i in range(len(system.populations)):
         pop = system.populations[i]
@@ -447,9 +400,7 @@ def collapse_cortical_layers(system):
             if layer == "2/3":
                 other_pops = []
                 for other_layer in ["4", "5", "6"]:
-                    other_pop = system.find_population(
-                        "{}_{}".format(area, other_layer)
-                    )
+                    other_pop = system.find_population("{}_{}".format(area, other_layer))
                     if other_pop:
                         other_pops.append(other_pop.name)
                 merges[population.name] = other_pops
@@ -487,9 +438,7 @@ def expand_strides(collapsed_system, collapsed_strides, full_system):
         elif name in ["V1_2/3blob", "V1_4Cbeta", "V1_5", "V1_6", "V1_2/3interblob"]:
             return "V1_2/3blob"
         else:
-            return (
-                name.replace("_4", "_2/3").replace("_5", "_2/3").replace("_6", "_2/3")
-            )
+            return name.replace("_4", "_2/3").replace("_5", "_2/3").replace("_6", "_2/3")
 
     full_strides = StridePattern(full_system, 512)
     for i in range(len(full_system.projections)):
@@ -516,9 +465,7 @@ def expand_strides(collapsed_system, collapsed_strides, full_system):
             if full_strides.cumulatives[pre_ind] is None:
                 done = False
             elif full_strides.cumulatives[post_ind] is None:
-                full_strides.cumulatives[post_ind] = (
-                    full_strides.cumulatives[pre_ind] * full_strides.strides[i]
-                )
+                full_strides.cumulatives[post_ind] = full_strides.cumulatives[pre_ind] * full_strides.strides[i]
 
     return full_strides
 
@@ -617,18 +564,7 @@ if __name__ == "__main__":
     from examples.example_systems import make_big_system, miniaturize
     import pickle
 
-    ventral_areas = [
-        "V1",
-        "V2",
-        "V4",
-        "VOT",
-        "PITd",
-        "PITv",
-        "CITd",
-        "CITv",
-        "AITd",
-        "AITv",
-    ]
+    ventral_areas = ["V1", "V2", "V4", "VOT", "PITd", "PITv", "CITd", "CITv", "AITd", "AITv"]
 
     def make_ventral_system(areas_to_include=6):
         system = make_big_system(ventral_areas[:areas_to_include])
@@ -642,9 +578,7 @@ if __name__ == "__main__":
     if ventral:
         areas_to_include = 10
         system = make_ventral_system(areas_to_include=areas_to_include)
-        filename = "stride-pattern-compact-{}.pkl".format(
-            ventral_areas[areas_to_include - 1]
-        )
+        filename = "stride-pattern-compact-{}.pkl".format(ventral_areas[areas_to_include - 1])
     else:
         system = make_big_system()
         filename = "stride-pattern-compact-msh.pkl"
@@ -670,20 +604,10 @@ if __name__ == "__main__":
     with open(filename, "wb") as file:
         # pickle.dump({'system': system, 'strides': candidate, 'distances': distances, 'first_few': first_few}, file)
         pickle.dump(
-            {
-                "system": full_system,
-                "strides": full_strides,
-                "distances": distances,
-                "first_few": first_few,
-            },
-            file,
+            {"system": full_system, "strides": full_strides, "distances": distances, "first_few": first_few}, file
         )
 
     for i in range(len(system.populations)):
         print(
-            "{}: {} vs {}".format(
-                system.populations[i].name,
-                candidate.cumulatives[i],
-                candidate.cumulative_hints[i],
-            )
+            "{}: {} vs {}".format(system.populations[i].name, candidate.cumulatives[i], candidate.cumulative_hints[i])
         )

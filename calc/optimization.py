@@ -91,33 +91,17 @@ def optimize_network_architecture(system, stride_pattern=None, compare=True):
         training_curve = []
         c_value = sess.run(c)
         training_curve.append((0, c_value, sess.run(dec), sess.run(kc)))
-        _print_cost(
-            c_value,
-            sess.run(fc),
-            sess.run(bc),
-            sess.run(ec),
-            sess.run(wc),
-            sess.run(dec),
-        )
+        _print_cost(c_value, sess.run(fc), sess.run(bc), sess.run(ec), sess.run(wc), sess.run(dec))
 
         iterations = 100
         for i in range(2001):
-            _run_optimization_steps(
-                sess, opt_op, iterations=iterations, clip_ops=clip_ops
-            )
+            _run_optimization_steps(sess, opt_op, iterations=iterations, clip_ops=clip_ops)
             cost_i = sess.run(c)
             training_curve.append((iterations * i, cost_i, sess.run(dec), sess.run(kc)))
             print(cost_i)
 
             if np.isnan(cost_i):
-                _print_cost(
-                    cost_i,
-                    sess.run(fc),
-                    sess.run(bc),
-                    sess.run(ec),
-                    sess.run(wc),
-                    sess.run(dec),
-                )
+                _print_cost(cost_i, sess.run(fc), sess.run(bc), sess.run(ec), sess.run(wc), sess.run(dec))
                 break
 
             if i > 0 and i % 50 == 0:

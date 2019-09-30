@@ -16,9 +16,7 @@ class Population:
         self.w = w
 
     def get_description(self):
-        return "{} (#neurons={}; in-degree={}; RF-width={})".format(
-            self.name, self.n, self.e, self.w
-        )
+        return "{} (#neurons={}; in-degree={}; RF-width={})".format(self.name, self.n, self.e, self.w)
 
     def is_input(self):
         """
@@ -70,9 +68,7 @@ class InterLaminarProjection(Projection):
         self.b = b
 
     def get_description(self):
-        return "{} (synapses-per-target={})".format(
-            Projection.get_description(self), self.b
-        )
+        return "{} (synapses-per-target={})".format(Projection.get_description(self), self.b)
 
 
 class System:
@@ -111,11 +107,7 @@ class System:
         if f >= self.min_f:
             self.projections.append(InterAreaProjection(origin, termination, f))
         else:
-            print(
-                "Omitting connection {}->{} with f={}".format(
-                    origin_name, termination_name, f
-                )
-            )
+            print("Omitting connection {}->{} with f={}".format(origin_name, termination_name, f))
 
     def connect_layers(self, origin_name, termination_name, b):
         origin = self.find_population(origin_name)
@@ -151,10 +143,7 @@ class System:
         assert isinstance(termination_name, str)
         result = None
         for projection in self.projections:
-            if (
-                projection.origin.name == origin_name
-                and projection.termination.name == termination_name
-            ):
+            if projection.origin.name == origin_name and projection.termination.name == termination_name:
                 result = projection
                 break
         return result
@@ -164,10 +153,7 @@ class System:
         result = None
         for i in range(len(self.projections)):
             projection = self.projections[i]
-            if (
-                projection.origin.name == origin_name
-                and projection.termination.name == termination_name
-            ):
+            if projection.origin.name == origin_name and projection.termination.name == termination_name:
                 result = i
                 break
         return result
@@ -215,15 +201,10 @@ class System:
         """
 
         def keep(projection):
-            if (
-                isinstance(projection, InterAreaProjection)
-                and projection.f < min_fraction
-            ):
+            if isinstance(projection, InterAreaProjection) and projection.f < min_fraction:
                 print(
                     "Pruning sparse projection {}->{} {}".format(
-                        projection.origin.name,
-                        projection.termination.name,
-                        projection.f,
+                        projection.origin.name, projection.termination.name, projection.f
                     )
                 )
                 return False
@@ -278,13 +259,9 @@ class System:
 
         for projection in self.projections:
             if projection.termination.name == to_merge:
-                if (
-                    projection.origin.name == to_keep
-                ):  # don't need projection between merged populations
+                if projection.origin.name == to_keep:  # don't need projection between merged populations
                     projections_to_drop.append(projection)
-                elif self.find_projection(
-                    projection.origin.name, keep_pop.name
-                ):  # new projection already exists
+                elif self.find_projection(projection.origin.name, keep_pop.name):  # new projection already exists
                     projections_to_drop.append(projection)
                 else:
                     projection.termination = keep_pop
@@ -451,14 +428,7 @@ if __name__ == "__main__":
     graph = sys.make_graph()
     # print(type(nx.drawing.layout.random_layout(graph)))
     # TODO: these layouts all look awful; should use flat-map cortical positions
-    nx.draw_networkx(
-        graph,
-        pos=get_layout(sys),
-        arrows=True,
-        font_size=10,
-        node_size=1200,
-        node_color="white",
-    )
+    nx.draw_networkx(graph, pos=get_layout(sys), arrows=True, font_size=10, node_size=1200, node_color="white")
     # nx.draw_networkx(graph, pos=nx.spring_layout(graph), arrows=True, font_size=10, node_size=1200, node_color='white')
     # nx.draw_networkx(graph, pos=nx.drawing.layout.fruchterman_reingold_layout(graph), arrows=True, font_size=10, node_size=1200, node_color='white')
     plt.show()
