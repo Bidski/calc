@@ -137,17 +137,82 @@ class Network:
 
         return graph
 
-    def write_dot_graph(self, output_file):
+    def write_dot_graph(self, output_file, use_rank=False):
+        colours = {
+            "AITd_2_3": {"hex": "#aaa4e1", "count": 1},
+            "AITd_4": {"hex": "#141d1b", "count": 9},
+            "AITd_5": {"hex": "#a6e590", "count": 2},
+            "AITd_6": {"hex": "#340a29", "count": 2},
+            "AITv_2_3": {"hex": "#1cf1a3", "count": 1},
+            "AITv_4": {"hex": "#1e0e76", "count": 13},
+            "AITv_5": {"hex": "#a9e81a", "count": 2},
+            "AITv_6": {"hex": "#6439e5", "count": 2},
+            "CITd_2_3": {"hex": "#6e9f23", "count": 1},
+            "CITd_4": {"hex": "#ef6ade", "count": 3},
+            "CITd_5": {"hex": "#20f53d", "count": 2},
+            "CITd_6": {"hex": "#fe16f4", "count": 2},
+            "CITv_2_3": {"hex": "#02531d", "count": 1},
+            "CITv_4": {"hex": "#f03c6d", "count": 9},
+            "CITv_5": {"hex": "#65e6f9", "count": 2},
+            "CITv_6": {"hex": "#8f323c", "count": 2},
+            "INPUT": {"hex": "#000000", "count": 1},
+            "konio_LGN": {"hex": "#459da1", "count": 1},
+            "magno_LGN": {"hex": "#d87378", "count": 1},
+            "parvo_LGN": {"hex": "#10558a", "count": 1},
+            "PITd_2_3": {"hex": "#edd45e", "count": 1},
+            "PITd_4": {"hex": "#5252b9", "count": 7},
+            "PITd_5": {"hex": "#e6861f", "count": 2},
+            "PITd_6": {"hex": "#a32890", "count": 2},
+            "PITv_2_3": {"hex": "#f2cdb9", "count": 1},
+            "PITv_4": {"hex": "#6b4c33", "count": 7},
+            "PITv_5": {"hex": "#ff2a0d", "count": 2},
+            "PITv_6": {"hex": "#ab8a77", "count": 2},
+            "V1_2_3blob": {"hex": "#aaa4e1", "count": 3},
+            "V1_2_3interblob": {"hex": "#141d1b", "count": 2},
+            "V1_4B": {"hex": "#a6e590", "count": 1},
+            "V1_4Calpha": {"hex": "#340a29", "count": 1},
+            "V1_4Cbeta": {"hex": "#1cf1a3", "count": 1},
+            "V1_5": {"hex": "#1e0e76", "count": 3},
+            "V1_6": {"hex": "#a9e81a", "count": 3},
+            "V2pale_2_3": {"hex": "#6439e5", "count": 1},
+            "V2pale_4": {"hex": "#6e9f23", "count": 1},
+            "V2pale_5": {"hex": "#ef6ade", "count": 2},
+            "V2pale_6": {"hex": "#20f53d", "count": 2},
+            "V2thick_2_3": {"hex": "#20f53d", "count": 1},
+            "V2thick_4": {"hex": "#fe16f4", "count": 1},
+            "V2thick_5": {"hex": "#02531d", "count": 2},
+            "V2thick_6": {"hex": "#f03c6d", "count": 2},
+            "V2thin_2_3": {"hex": "#65e6f9", "count": 1},
+            "V2thin_4": {"hex": "#8f323c", "count": 2},
+            "V2thin_5": {"hex": "#459da1", "count": 2},
+            "V2thin_6": {"hex": "#d87378", "count": 2},
+            "V4_2_3": {"hex": "#10558a", "count": 1},
+            "V4_4": {"hex": "#edd45e", "count": 6},
+            "V4_5": {"hex": "#5252b9", "count": 2},
+            "V4_6": {"hex": "#e6861f", "count": 2},
+            "VOT_2_3": {"hex": "#a32890", "count": 1},
+            "VOT_4": {"hex": "#f2cdb9", "count": 6},
+            "VOT_5": {"hex": "#ab8a77", "count": 2},
+            "VOT_6": {"hex": "#aaa4e1", "count": 2},
+        }
+
         with open(output_file, "w") as dot:
+
             dot.write("digraph MSH {\n")
-            dot.write("    splines=ortho;\n")
+            dot.write("    splines=true;\n")
             dot.write("    rankdir=LR;\n")
 
             dot.write("    # Node definitions\n")
             for layer in self.layers:
+                layer_label = "{0} | {{ {{ m | w }} | {{ {1:.4e} | {2:.4e} }} }}".format(
+                    layer.name.replace("/", "_"), layer.m, layer.width
+                )
                 dot.write(
-                    '    {0} [shape=Mrecord, style=bold, label="{0} | {{ m | w }} | {{ {1:.2g} | {2:.2g} }}"];\n'.format(
-                        layer.name.replace("/", "_"), layer.m, layer.width
+                    '    {} [shape=Mrecord, style=bold, label="{}", color="{}", penwidth={}];\n'.format(
+                        layer.name.replace("/", "_"),
+                        layer_label,
+                        colours[layer.name.replace("/", "_")]["hex"],
+                        colours[layer.name.replace("/", "_")]["count"],
                     )
                 )
 
@@ -155,36 +220,38 @@ class Network:
 
             dot.write("    # Edge definitions\n")
             for conn in self.connections:
+                edge_label = "{}_to_{} | {{ {{ c | s | w | {} }} | {{ {:.4e} | {:.4e} | {:.4e} | {:.4e} }} }}".format(
+                    conn.pre.name.replace("/", "_"),
+                    conn.post.name.replace("/", "_"),
+                    "\u03c3",
+                    conn.c,
+                    conn.s,
+                    conn.w,
+                    conn.sigma,
+                )
                 dot.write(
-                    '    {}_to_{} [shape=record, style=radial, label="{{ c | s | w | \u03C3 }} | {{ {:.4g} | {:.2g} | {:.2g} | {:.4g} }}"];\n'.format(
-                        conn.pre.name.replace("/", "_"),
-                        conn.post.name.replace("/", "_"),
-                        conn.c,
-                        conn.s,
-                        conn.w,
-                        conn.sigma,
+                    '    {}_to_{} [shape=record, style=radial, label="{}"];\n'.format(
+                        conn.pre.name.replace("/", "_"), conn.post.name.replace("/", "_"), edge_label
                     )
                 )
 
             dot.write("    # Edges\n")
             for conn in self.connections:
                 dot.write(
-                    "    {0} -> {0}_to_{1} -> {1};\n".format(
-                        conn.pre.name.replace("/", "_"), conn.post.name.replace("/", "_")
+                    '    {0}:e -> {0}_to_{1} -> {1}:w [color="{2}", penwidth={3}];\n'.format(
+                        conn.pre.name.replace("/", "_"),
+                        conn.post.name.replace("/", "_"),
+                        colours[conn.post.name.replace("/", "_")]["hex"],
+                        colours[conn.post.name.replace("/", "_")]["count"],
                     )
                 )
-                # dot.write(
-                #     "    {0}:s -> {0}_to_{1}:n;\n".format(
-                #         conn.pre.name.replace("/", "_"),
-                #         conn.post.name.replace("/", "_"),
-                #     )
-                # )
-                # dot.write(
-                #     "    {0}_to_{1}:s -> {1}:n;\n".format(
-                #         conn.pre.name.replace("/", "_"),
-                #         conn.post.name.replace("/", "_"),
-                #     )
-                # )
+
+            if use_rank:
+                dot.write("    # Rank groupings\n")
+                groups = ["LGN", "V1_2", "V1_4", "V1_5", "V1_6", "V2thin", "V2thick", "V4", "PIT", "CIT", "VOT"]
+                for group in groups:
+                    rank = "; ".join([layer.name.replace("/", "_") for layer in self.layers if group in layer.name])
+                    dot.write("    {{rank = same; {};}}\n".format(rank))
 
             dot.write("}\n")
 
