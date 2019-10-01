@@ -1,6 +1,8 @@
 import pickle
+import time
 import numpy as np
 import tensorflow as tf
+from tqdm import tqdm
 from stride import StridePattern, initialize_network
 from conversion import get_clip_ops, update_net_from_tf, Cost
 
@@ -66,19 +68,37 @@ def optimize_network_architecture(system, stride_pattern=None, compare=True):
 
     c = fc + bc + ec + wc + dec + 5 * kc + 5 * rfc
 
-    vars = []
-    vars.extend(cost.network.c)
-    vars.extend(cost.network.sigma)
+    vars = [cost.network.c, cost.network.sigma]
     for w_rf in cost.network.w_rf:
         if isinstance(w_rf, tf.Variable):
             vars.append(w_rf)
 
-    clip_ops = []
-    clip_ops.extend(get_clip_ops(cost.network.c))
-    clip_ops.extend(get_clip_ops(cost.network.sigma))
+    clip_ops = [get_clip_ops(cost.network.c), get_clip_ops(cost.network.sigma)]
+
+    # Optimiser, and global_step variables on the CPU
+    global_step = tf.Variable(0, dtype=tf.int32, trainable=False, name="global_step")
 
     print("Setting up optimizer")
-    opt_op = optimizer.minimize(c, var_list=vars)
+    opt_op = optimizer.minimize(c, global_step=global_step, var_list=vars)
+
+    # Create our model saver to save all the trainable variables and the global_step
+    save_vars = {v.name: v for v in tf.compat.v1.trainable_variables()}
+    save_vars.update({global_step.name: global_step})
+    saver = tf.compat.v1.train.Saver(save_vars)
+
+    # Create our summary operation
+    summary_op = tf.compat.v1.summary.merge(
+        [
+            tf.compat.v1.summary.scalar("f", fc),
+            tf.compat.v1.summary.scalar("b", bc),
+            tf.compat.v1.summary.scalar("e", ec),
+            tf.compat.v1.summary.scalar("w", wc),
+            tf.compat.v1.summary.scalar("de", dec),
+            tf.compat.v1.summary.scalar("k", kc),
+            tf.compat.v1.summary.scalar("rf", rfc),
+            tf.compat.v1.summary.scalar("c", c),
+        ]
+    )
 
     init = tf.compat.v1.global_variables_initializer()
     with tf.compat.v1.Session() as sess:
@@ -88,44 +108,61 @@ def optimize_network_architecture(system, stride_pattern=None, compare=True):
         update_net_from_tf(sess, net, cost.network)
         net.print()
 
-        training_curve = []
-        c_value = sess.run(c)
-        training_curve.append((0, c_value, sess.run(dec), sess.run(kc)))
-        _print_cost(c_value, sess.run(fc), sess.run(bc), sess.run(ec), sess.run(wc), sess.run(dec))
+        # Setup for tensorboard
+        with tf.compat.v1.summary.FileWriter("logs", graph=tf.compat.v1.get_default_graph()) as summary_writer:
+            training_curve = []
+            c_value, summary = sess.run([c, summary_op])
+            training_curve.append((0, c_value, sess.run(dec), sess.run(kc)))
+            _print_cost(c_value, sess.run(fc), sess.run(bc), sess.run(ec), sess.run(wc), sess.run(dec))
 
-        iterations = 100
-        for i in range(2001):
-            _run_optimization_steps(sess, opt_op, iterations=iterations, clip_ops=clip_ops)
-            cost_i = sess.run(c)
-            training_curve.append((iterations * i, cost_i, sess.run(dec), sess.run(kc)))
-            print(cost_i)
+            # Write out to the summary
+            summary_writer.add_summary(summary, tf.compat.v1.train.global_step(sess, global_step))
 
-            if np.isnan(cost_i):
-                _print_cost(cost_i, sess.run(fc), sess.run(bc), sess.run(ec), sess.run(wc), sess.run(dec))
-                break
+            iterations = 100
+            for i in range(2001):
+                start = time.perf_counter()
+                _run_optimization_steps(sess, opt_op, iterations=iterations, clip_ops=clip_ops)
+                cost_i, summary = sess.run([c, summary_op])
+                end = time.perf_counter()
 
-            if i > 0 and i % 50 == 0:
-                print("saving checkpoint")
-                update_net_from_tf(sess, net, cost.network)
-                with open("optimization-checkpoint.pkl", "wb") as file:
-                    pickle.dump({"net": net, "training_curve": training_curve}, file)
+                training_curve.append((iterations * i, cost_i, sess.run(dec), sess.run(kc)))
+                print(
+                    "Batch: {} ({:2f}s) Cost: {:3g}".format(
+                        tf.compat.v1.train.global_step(sess, global_step), (end - start), cost_i
+                    )
+                )
 
-        update_net_from_tf(sess, net, cost.network)
-        net.print()
+                # Write out to the summary
+                summary_writer.add_summary(summary, tf.compat.v1.train.global_step(sess, global_step))
 
-        if compare:
-            cost.compare_system(system, sess)
+                if np.isnan(cost_i):
+                    _print_cost(cost_i, sess.run(fc), sess.run(bc), sess.run(ec), sess.run(wc), sess.run(dec))
+                    break
+
+                if i > 0 and i % 50 == 0:
+                    print("saving checkpoint")
+                    saver.save(sess, "outputs/msh", tf.compat.v1.train.global_step(sess, global_step))
+                    update_net_from_tf(sess, net, cost.network)
+                    with open("outputs/optimization-checkpoint.pkl", "wb") as file:
+                        pickle.dump({"net": net, "training_curve": training_curve}, file)
+
+            saver.save(sess, "outputs/msh", tf.compat.v1.train.global_step(sess, global_step))
+            update_net_from_tf(sess, net, cost.network)
+            with open("outputs/optimization-checkpoint.pkl", "wb") as file:
+                pickle.dump({"net": net, "training_curve": training_curve}, file)
+            net.print()
+
+            if compare:
+                cost.compare_system(system, sess)
 
     return net, training_curve
 
 
 def _run_optimization_steps(sess, opt_op, iterations=100, clip_ops=[]):
-    for i in range(iterations):
-        print(".", end="", flush=True)
+    for _ in tqdm(range(iterations)):
         opt_op.run()
         for clip_op in clip_ops:
             sess.run(clip_op)
-    print()
 
 
 def _print_cost(total_cost, f_cost, b_cost, e_cost, rf_cost, de_cost):
