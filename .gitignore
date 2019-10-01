@@ -110,3 +110,7 @@ optimization-result*
 pre-trained/
 
 tags
+
+calc/logs/
+
+calc/outputs/
